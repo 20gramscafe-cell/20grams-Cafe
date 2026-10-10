@@ -33,3 +33,6 @@
 .success-actions{display:flex;gap:10px;align-items:stretch;margin-top:14px}.success-actions .primary-btn{width:auto;flex:1;min-width:0;margin-top:0;padding:10px 12px;font-size:14px;box-shadow:none}.success-actions .new-order-btn{flex:1.25}.success-actions .done-order-btn{flex:.75;background:#211a14;border:1px solid rgba(216,173,92,.55);color:var(--gold2)}
 
 .developer-footer{text-align:center;padding:18px 12px;margin-top:32px;color:var(--muted);font-size:12px;line-height:1.7}.developer-footer strong{display:block;color:var(--text);font-size:13px}.developer-footer a{color:inherit}
+
+/* Keep developer credit at the very bottom of the customer page */
+html,body{min-height:100%;}body{min-height:100dvh;display:flex;flex-direction:column}body>main{flex:1 0 auto}body>.developer-footer{margin-top:auto;padding-top:24px;padding-bottom:18px}
