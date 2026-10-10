@@ -38,8 +38,8 @@ jobs:
               s=s.replace('const tr=await db.from("cafe_tables").select("id,table_number,active").eq("table_number",state.table.table_number).eq("active",true).maybeSingle();','const tr={data:state.table,error:null};')
             if fn=='admin.js':
               s=s.replace('https://hxkhhnrorjxrrqxevvcr.supabase.co','https://qnkddysjbiauplefuxaq.supabase.co')
-              s=s.replace('const ADMIN_TOKEN=(location.hash||"").replace(/^#/,"");','const ADMIN_TOKEN=(location.hash||"").replace(/^#/,"")||"20grams";')
-              s=s.replace('async function getApiKey(){','async function getApiKey(){')
+              # Admin opens directly. The gateway credential is internal to the generated app and is never taken from the URL.
+              s=s.replace('const ADMIN_TOKEN=(location.hash||"").replace(/^#/,"")||"20grams";','const ADMIN_TOKEN="20grams";')
               s=s.replace('const match=source.match(/(?:const|let|var)\\s+SUPABASE_KEY\\s*=\\s*["\']([^"\']+)["\']/);','const match=null;')
               s=s.replace('if(!match)throw new Error("تعذر العثور على مفتاح الاتصال.");\n  return match[1];','return "";')
               s=s.replace('headers:{"apikey":apiKey,"Content-Type":"application/json"}','headers:{"Content-Type":"application/json"}')
@@ -93,4 +93,5 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add .
           git commit -m 'Build 20grams Cafe from pinned AS-Cafe source' || exit 0
-          git push
+          git switch -C main
+          git push origin main
