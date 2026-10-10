@@ -18,7 +18,7 @@ The original GitHub repository is not modified. A separate Supabase project is u
 - Initial 10 active tables and owner profile created.
 
 ## Deployment
-The repository contains a GitHub Actions bootstrap workflow that copies the pinned frontend baseline, applies the 20grams Cafe branding/footer, points the customer frontend at the new Supabase project, and installs GitHub Pages deployment.
+The repository contains a GitHub Actions bootstrap workflow that copies the pinned frontend baseline, applies the 20grams Cafe branding/footer, points the customer frontend at the new Supabase project, removes source-side workflow files from the generated build, and installs GitHub Pages deployment.
 
 ## Remaining production blocker
 The original Supabase project is not accessible with the current connection (database/Edge Function inspection is denied). The original GitHub repository contains the frontend but not the backend Edge Function source/schema. Therefore the admin backend cannot be truthfully declared a complete 1:1 clone yet without access to the original Supabase backend or an export of its Edge Functions/schema.
