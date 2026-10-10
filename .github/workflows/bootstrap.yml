@@ -20,7 +20,7 @@ jobs:
       - name: Copy and rebrand
         run: |
           rm -rf ./*
-          cp -a /tmp/original/. .
+          find /tmp/original -mindepth 1 -maxdepth 1 ! -name .git -exec cp -a {} . \;
           python3 - <<'PY'
           from pathlib import Path
           import re
