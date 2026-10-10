@@ -1,0 +1,72 @@
+name: Apply Supabase Auth to admin
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+
+jobs:
+  auth:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Wait for generated frontend
+        run: |
+          for i in $(seq 1 30); do
+            if [ -f admin.js ] && [ -f admin.html ]; then exit 0; fi
+            git fetch origin main
+            git checkout origin/main -- admin.js admin.html 2>/dev/null || true
+            sleep 10
+          done
+          test -f admin.js && test -f admin.html
+      - name: Install Supabase Auth gate
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('admin.html'); s=p.read_text()
+          s=re.sub(r'<section id="loginView".*?</section>', '''<section id="loginView" class="login-view">
+            <div class="login-card">
+              <div class="brand-mark">20<span>g</span></div>
+              <span class="eyebrow">20GRAMS CAFE · BACK OFFICE</span>
+              <h1 id="loginTitle">تسجيل دخول الإدارة</h1>
+              <p id="loginText">سجّل الدخول بحساب موظف نشط في 20grams Cafe.</p>
+              <form id="authForm" style="display:grid;gap:12px;margin-top:18px">
+                <input id="authEmail" type="email" autocomplete="username" placeholder="البريد الإلكتروني" required>
+                <input id="authPassword" type="password" autocomplete="current-password" placeholder="كلمة المرور" required>
+                <button class="primary-btn" type="submit">دخول</button>
+                <button class="btn-small" id="resetPassword" type="button">نسيت كلمة المرور؟</button>
+                <p id="authMessage" style="margin:0"></p>
+              </form>
+            </div>
+          </section>''', s, flags=re.S)
+          s=s.replace('<script src="admin.js?v=2026100904"></script>', '<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>\n<script src="auth.js?v=20261010"></script>\n<script src="admin.js?v=2026100904"></script>')
+          p.write_text(s)
+
+          p=Path('admin.js'); s=p.read_text()
+          s=s.replace('const SUPABASE_URL="https://hxkhhnrorjxrrqxevvcr.supabase.co";','const SUPABASE_URL="https://qnkddysjbiauplefuxaq.supabase.co";')
+          s=s.replace('const ADMIN_GATEWAY=SUPABASE_URL+"/functions/v1/admin-gateway";','const ADMIN_GATEWAY=SUPABASE_URL+"/functions/v1/admin-gateway";')
+          s=re.sub(r'async function getApiKey\(\)\{.*?\n\}', '', s, count=1, flags=re.S)
+          s=s.replace('const ADMIN_TOKEN=(location.hash||"").replace(/^#/,"");','const ADMIN_TOKEN="";')
+          s=s.replace('const apiKey=await getApiKey();\n    const response=await fetch(ADMIN_GATEWAY,{','const {data:sessionData}=await window.supabaseClient.auth.getSession();\n    const accessToken=sessionData?.session?.access_token;\n    if(!accessToken)return{data:null,error:{message:"يجب تسجيل الدخول أولًا."}};\n    const response=await fetch(ADMIN_GATEWAY,{')
+          s=s.replace('headers:{"apikey":apiKey,"Content-Type":"application/json"},','headers:{"Authorization":"Bearer "+accessToken,"Content-Type":"application/json"},')
+          s=s.replace('''    if(!ADMIN_TOKEN){
+      showMessage("رابط الإدارة غير صالح","يجب فتح صفحة الإدارة باستخدام رابط المدير الخاص.");
+      return;
+    }
+''','''    if(!(await window.ensureAdminAuth())) return;
+''')
+          p.write_text(s)
+
+          Path('auth.js').write_text('''const SUPABASE_URL="https://qnkddysjbiauplefuxaq.supabase.co";\nconst SUPABASE_PUBLISHABLE_KEY="sb_publishable_GqZSLFFopkaI-WOPa-d2lPeg_PG0qA1AE";\nwindow.supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);\n\nasync function checkStaff(){\n  const {data:{user}}=await window.supabaseClient.auth.getUser();\n  if(!user)return null;\n  const {data,error}=await window.supabaseClient.from('staff_profiles').select('*').eq('user_id',user.id).eq('active',true).maybeSingle();\n  if(error||!data)return null;\n  return data;\n}\n\nwindow.ensureAdminAuth=async function(){\n  const {data:{session}}=await window.supabaseClient.auth.getSession();\n  if(session){\n    const staff=await checkStaff();\n    if(staff){window.adminStaff=staff;return true;}\n    await window.supabaseClient.auth.signOut();\n    const m=document.querySelector('#authMessage');if(m)m.textContent='الحساب غير مرتبط بموظف نشط. يجب ربط الحساب من staff_profiles أولًا.';\n  }\n  const view=document.querySelector('#loginView');const app=document.querySelector('#appView');\n  if(view)view.classList.remove('hidden');if(app)app.classList.add('hidden');\n  return false;\n};\n\ndocument.addEventListener('DOMContentLoaded',()=>{\n  const form=document.querySelector('#authForm');\n  const msg=document.querySelector('#authMessage');\n  if(form)form.addEventListener('submit',async e=>{\n    e.preventDefault();\n    msg.textContent='جارٍ تسجيل الدخول…';\n    const email=document.querySelector('#authEmail').value.trim();\n    const password=document.querySelector('#authPassword').value;\n    const {error}=await window.supabaseClient.auth.signInWithPassword({email,password});\n    if(error){msg.textContent='تعذر تسجيل الدخول: '+error.message;return;}\n    const staff=await checkStaff();\n    if(!staff){await window.supabaseClient.auth.signOut();msg.textContent='تم تسجيل الدخول لكن الحساب غير مرتبط بموظف نشط.';return;}\n    window.adminStaff=staff;msg.textContent='تم الدخول.';if(typeof boot==='function')await boot();\n  });\n  const reset=document.querySelector('#resetPassword');\n  if(reset)reset.addEventListener('click',async()=>{\n    const email=document.querySelector('#authEmail').value.trim();\n    if(!email){msg.textContent='اكتب البريد الإلكتروني أولًا.';return;}\n    const {error}=await window.supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:location.href});\n    msg.textContent=error?'تعذر إرسال رابط الاستعادة: '+error.message:'تم إرسال رابط استعادة كلمة المرور إذا كان الحساب موجودًا.';\n  });\n});\n'''.replace('GqZSLFFopkaI-WOP','GqZSLFFopkaI-WOP'))
+          # Correct the publishable key literal in case the workflow editor normalizes punctuation.
+          p=Path('auth.js'); ss=p.read_text().replace('sb_publishable_GqZSLFFopkaI-WOPa-d2lPeg_PG0qA1AE','sb_publishable_GqZSLFFopkaI-WOPa-d2lPeg_PG0qA1AE'); p.write_text(ss)
+          PY
+      - name: Commit Auth changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add admin.html admin.js auth.js
+          git diff --cached --quiet || git commit -m 'Protect admin panel with Supabase Auth'
+          git push
