@@ -43,7 +43,7 @@ const db={
  },
  functions:{async invoke(name,{body}={}){try{const res=await fetch(SUPABASE_URL+"/functions/v1/"+name,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});const data=await res.json().catch(()=>null);return res.ok?{data,error:null}:{data:null,error:{message:data?.error||"Function request failed"}}}catch(error){return {data:null,error}}}}
 };
-const state={settings:null,tables:[],categories:[],products:[],groups:[],modifiers:[],links:[],table:null,pendingTableNumber:null,category:null,cart:[],trackingToken:null,trackingTimer:null,trackingTokens:[],myOrdersSignature:null};
+const state={settings:null,categories:[],products:[],groups:[],modifiers:[],links:[],category:null,cart:[],trackingToken:null,trackingTimer:null,trackingTokens:[],myOrdersSignature:null};
 function loadTrackingTokens(){try{const x=JSON.parse(localStorage.getItem("as_cafe_order_tokens")||"[]");state.trackingTokens=Array.isArray(x)?x.slice(0,20):[]}catch(e){state.trackingTokens=[]}}
 function saveTrackingToken(token,orderNumber){if(!token)return;state.trackingTokens=[{token:token,order_number:orderNumber||null},...state.trackingTokens.filter(function(x){return x.token!==token})].slice(0,20);try{localStorage.setItem("as_cafe_order_tokens",JSON.stringify(state.trackingTokens))}catch(e){}renderTrackingBadge()}
 function renderTrackingBadge(){const b=$("#ordersCount");if(b)b.textContent=state.trackingTokens.length}
@@ -52,20 +52,19 @@ async function renderMyOrders(){
  const box=$("#myOrdersList");if(!box)return;
  const rows=await Promise.all(state.trackingTokens.map(fetchTrackedOrder));
  const valid=rows.map(function(o,n){return {order:o,entry:state.trackingTokens[n]}}).filter(function(x){return x.order});
- const signature=JSON.stringify(valid.map(function(x){const o=x.order;return {token:x.entry.token,order_number:o.order_number||x.entry.order_number||"----",table_number:o.table_number||"—",status:o.status,created_at:o.created_at,estimated_ready_at:o.estimated_ready_at||null}}));
+ const signature=JSON.stringify(valid.map(function(x){const o=x.order;return {token:x.entry.token,order_number:o.order_number||x.entry.order_number||"----",status:o.status,created_at:o.created_at,estimated_ready_at:o.estimated_ready_at||null}}));
  if(signature===state.myOrdersSignature)return;
  state.myOrdersSignature=signature;
  if(!valid.length){
   box.innerHTML='<div class="empty">مفيش طلبات محفوظة على الجهاز لحد دلوقتي.<br>بعد ما تعمل طلب هتلاقيه هنا تلقائيًا.</div>';
   return;
  }
- box.innerHTML=valid.map(function(x){const o=x.order;return '<article class="tracked-order"><div class="tracked-order-head"><strong>#'+esc(o.order_number||x.entry.order_number||"----")+'</strong><span>طاولة '+esc(o.table_number||"—")+'</span></div><div class="tracked-status">'+esc(statusLabel(o.status))+'</div><div class="tracked-meta"><span>وقت الطلب<br><b>'+new Date(o.created_at).toLocaleString("ar-EG",{dateStyle:"short",timeStyle:"short"})+'</b></span><span>المتوقع<br><b>'+(o.estimated_ready_at?new Date(o.estimated_ready_at).toLocaleString("ar-EG",{dateStyle:"short",timeStyle:"short"}):"لم يتم تحديده")+'</b></span></div><button class="track-open" data-token="'+esc(x.entry.token)+'">متابعة الطلب</button></article>'}).join("");
+ box.innerHTML=valid.map(function(x){const o=x.order;return '<article class="tracked-order"><div class="tracked-order-head"><strong>#'+esc(o.order_number||x.entry.order_number||"----")+'</strong><span>تيك أواي</span></div><div class="tracked-status">'+esc(statusLabel(o.status))+'</div><div class="tracked-meta"><span>وقت الطلب<br><b>'+new Date(o.created_at).toLocaleString("ar-EG",{dateStyle:"short",timeStyle:"short"})+'</b></span><span>المتوقع<br><b>'+(o.estimated_ready_at?new Date(o.estimated_ready_at).toLocaleString("ar-EG",{dateStyle:"short",timeStyle:"short"}):"لم يتم تحديده")+'</b></span></div><button class="track-open" data-token="'+esc(x.entry.token)+'">متابعة الطلب</button></article>'}).join("");
  box.querySelectorAll("[data-token]").forEach(function(b){b.onclick=function(){state.trackingToken=b.dataset.token;closeModal("myOrdersModal");$("#customerInvoice").innerHTML="";$("#successModal").classList.remove("hidden");refreshCustomerOrder();if(state.trackingTimer)clearInterval(state.trackingTimer);state.trackingTimer=setInterval(refreshCustomerOrder,4000)}});
 }
 async function refreshMyOrders(){if(!$("#myOrdersModal")||$("#myOrdersModal").classList.contains("hidden"))return;await renderMyOrders()}
 function openMyOrders(){renderMyOrders();$("#myOrdersModal").classList.remove("hidden");if(state.trackingTimer)clearInterval(state.trackingTimer);state.trackingTimer=setInterval(refreshMyOrders,4000)}
 const $=s=>document.querySelector(s);
-document.addEventListener("click",function(e){const b=e.target.closest("#tables [data-table],#tables [data-table-number]");if(!b)return;e.preventDefault();e.stopPropagation();if(b.dataset.table)selectTableById(b.dataset.table);else selectTableByNumber(b.dataset.tableNumber)},true);
 const money=n=>Number(n||0).toFixed(2)+" EGP";
 function toast(msg){const el=$("#toast");el.textContent=msg;el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2400)}
 function imgUrl(p){return p.image_url||"https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=80"}
@@ -82,29 +81,12 @@ async function loadQuery(label,query){
 }
 async function init(){
  loadTrackingTokens();renderTrackingBadge();
-
  const menuResult=await loadQuery("المنيو",db.functions.invoke("customer-gateway",{body:{action:"get_menu"}}).then(function(r){return r.error?{data:null,error:r.error}:{data:r.data||null,error:null}}));
- const tableResult=await loadQuery("الطاولات",db.functions.invoke("customer-gateway",{body:{action:"get_tables"}}).then(function(r){return r.error?{data:null,error:r.error}:{data:r.data?.tables||[],error:null}}));
- const results=[tableResult,menuResult];
- state.settings=results[1].data?.settings||{tax_percent:14,service_percent:8,cafe_name:"20grams Cafe"};
- if(results[0].data&&results[0].data.length){state.tables=results[0].data.sort(function(a,b){return Number(a.table_number)-Number(b.table_number)});}else{state.tables=[];}
- state.categories=results[1].data?.categories||[];state.products=results[1].data?.products||[];state.groups=results[1].data?.groups||[];state.modifiers=results[1].data?.modifiers||[];state.links=results[1].data?.links||[];
+ state.settings=menuResult.data?.settings||{tax_percent:14,service_percent:8,cafe_name:"20grams Cafe"};
+ state.categories=menuResult.data?.categories||[];state.products=menuResult.data?.products||[];state.groups=menuResult.data?.groups||[];state.modifiers=menuResult.data?.modifiers||[];state.links=menuResult.data?.links||[];
  $("#taxRate").textContent=state.settings.tax_percent;$("#serviceRate").textContent=state.settings.service_percent;
- if(state.pendingTableNumber){const pending=state.tables.find(function(x){return String(x.table_number)===String(state.pendingTableNumber)});if(pending)selectTableById(pending.id);else renderTables();}else{renderTables();}renderCategories();renderProducts();updateCart();
- const failed=results.filter(function(x){return x.error});
- if(failed.length){
-  const names=failed.map(function(x){return x.label}).join("، ");
-  console.error("20grams Cafe data loading failures:",failed);
-  if(failed.some(function(x){return x.label==="الطاولات"})) toast("تعذر تحميل الطاولات من الخادم؛ لن يتم عرض طاولات وهمية.");
-  else if(failed.some(function(x){return x.label==="المنتجات"||x.label==="الأقسام"})) toast("تعذر تحميل المنيو بالكامل؛ حاول تحديث الصفحة.");
-  else console.warn("Optional 20grams Cafe data unavailable:",names);
- }
-}
-function fail(m){console.error(m);$("#tables").innerHTML='<div class="error">'+m+"</div>"}
-function selectTableById(id){const t=state.tables.find(function(x){return String(x.id)===String(id)});if(!t)return;state.pendingTableNumber=null;state.table=t;renderTables();$("#tableBadge").textContent="طاولة "+state.table.table_number;$("#tableBadge").classList.add("ready");$("#menuSection").scrollIntoView({behavior:"smooth"})}
-async function selectTableByNumber(number){const n=String(number);state.pendingTableNumber=n;const t=state.tables.find(function(x){return String(x.table_number)===n});if(t){selectTableById(t.id);return}$("#tableBadge").textContent="طاولة "+n;$("#tableBadge").classList.add("ready");try{const r=await db.functions.invoke("customer-gateway",{body:{action:"get_tables"}});const rows=Array.isArray(r.data?.tables)?r.data.tables:[];state.tables=rows.sort(function(a,b){return Number(a.table_number)-Number(b.table_number)});const loaded=state.tables.find(function(x){return String(x.table_number)===n});if(loaded&&state.pendingTableNumber===n)selectTableById(loaded.id);else if(!loaded)toast("الطاولة دي مش موجودة على الخادم")}catch(e){console.error(e);toast("تعذر تحميل الطاولات")}}
-function renderTables(){
- $("#tables").innerHTML=state.tables.map(function(t){return '<button type="button" class="table-btn '+(state.table&&state.table.id===t.id?"active":"")+'" data-table="'+t.id+'">طاولة '+esc(t.table_number)+"</button>"}).join("");
+ renderCategories();renderProducts();updateCart();
+ if(menuResult.error){console.error("20grams Cafe data loading failures:",[menuResult]);toast("تعذر تحميل المنيو بالكامل؛ حاول تحديث الصفحة.");}
 }
 function renderCategories(){
  let html='<button class="chip '+(!state.category?"active":"")+'" data-cat="">الكل</button>';
@@ -184,7 +166,6 @@ function renderCustomerInvoice(order, cartItems){
 }
 async function refreshCustomerOrder(){if(!state.trackingToken)return;const r=await db.functions.invoke("customer-gateway",{body:{action:"get_order",token:state.trackingToken}});if(r.error||!r.data?.order)return;const o=r.data.order;$("#successNumber").textContent="#"+(o.order_number||"----");$("#customerStatus").textContent=statusLabel(o.status);$("#customerStaff").textContent=(o.assigned_staff_name||"لم يبدأ التجهيز بعد")+(o.assigned_at?" · "+new Date(o.assigned_at).toLocaleString("ar-EG",{dateStyle:"short",timeStyle:"short"}):"");$("#customerCreated").textContent=new Date(o.created_at).toLocaleString("ar-EG",{dateStyle:"short",timeStyle:"short"});$("#customerEta").textContent=o.estimated_ready_at?new Date(o.estimated_ready_at).toLocaleString("ar-EG",{dateStyle:"short",timeStyle:"short"}):"لم يتم تحديده";if(o.status==="completed"||o.status==="cancelled"){clearInterval(state.trackingTimer);state.trackingTimer=null}}
 async function sendOrder(){
- if(!state.table)return toast("اختار رقم الطاولة أولاً");
  if(!state.cart.length)return toast("السلة فارغة");
  const customerName=$("#customerName").value.trim();
  if(!customerName)return toast("اسم الزبون مطلوب قبل تأكيد الطلب");
@@ -192,7 +173,6 @@ async function sendOrder(){
 
  const payload={
   action:"create_order",
-  table_id:state.table.id,
   customer_name:customerName,
   customer_phone:$("#customerPhone").value.trim()||null,
   customer_note:$("#orderNote").value.trim()||null,
@@ -202,11 +182,6 @@ async function sendOrder(){
    modifier_ids:i.mods.map(function(m){return m.id}),notes:i.note||null
   }})
  };
- if(!payload.table_id){
-  const tr={data:state.table,error:null};
-  if(tr.error||!tr.data){btn.disabled=false;btn.textContent="إرسال الطلب →";return toast("تعذر تأكيد الطاولة من الخادم");}
-  payload.table_id=tr.data.id;state.table=tr.data;
- }
 
  const created=await db.functions.invoke("customer-gateway",{body:payload});
  if(created.error||!created.data?.order){
