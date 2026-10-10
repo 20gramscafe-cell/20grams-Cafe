@@ -21,6 +21,7 @@ jobs:
         run: |
           rm -rf ./*
           find /tmp/original -mindepth 1 -maxdepth 1 ! -name .git -exec cp -a {} . \;
+          rm -f .github/workflows/check-admin.yml
           python3 - <<'PY'
           from pathlib import Path
           import re
