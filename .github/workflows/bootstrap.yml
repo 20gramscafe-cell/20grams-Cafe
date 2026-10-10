@@ -5,8 +5,6 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
-  pages: write
-  id-token: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -56,37 +54,6 @@ jobs:
           Path('styles.css').write_text(Path('styles.css').read_text()+'\n.developer-footer{text-align:center;padding:18px 12px;margin-top:32px;color:var(--muted);font-size:12px;line-height:1.7}.developer-footer strong{display:block;color:var(--text);font-size:13px}.developer-footer a{color:inherit}\n')
           Path('admin.css').write_text(Path('admin.css').read_text()+'\n.developer-footer{text-align:center;padding:16px 12px;color:var(--muted);font-size:12px;line-height:1.7}.developer-footer strong{display:block;color:var(--text);font-size:13px}.developer-footer a{color:inherit}\n')
           PY
-      - name: Pages workflow
-        run: |
-          mkdir -p .github/workflows
-          cat > .github/workflows/pages.yml <<'YAML'
-          name: Deploy 20grams Cafe
-          on:
-            push:
-              branches: [main]
-            workflow_dispatch:
-          permissions:
-            contents: read
-            pages: write
-            id-token: write
-          concurrency:
-            group: pages
-            cancel-in-progress: true
-          jobs:
-            deploy:
-              environment:
-                name: github-pages
-                url: ${{ steps.deployment.outputs.page_url }}
-              runs-on: ubuntu-latest
-              steps:
-                - uses: actions/checkout@v4
-                - uses: actions/configure-pages@v5
-                - uses: actions/upload-pages-artifact@v3
-                  with:
-                    path: .
-                - id: deployment
-                  uses: actions/deploy-pages@v4
-          YAML
       - name: Commit generated app
         run: |
           git config user.name 'github-actions[bot]'
