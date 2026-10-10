@@ -9,10 +9,18 @@ Independent cafe management system based on the AS-Cafe application.
 - Source baseline: AS-Cafe commit `e470780c3daa01d59221747291fc7e9e46f047b7`
 
 ## Independence
-This repository is intended to use a separate Supabase project from the original AS-Cafe installation. The original repository and its database are not modified by this project.
+The original GitHub repository is not modified. A separate Supabase project is used for 20grams Cafe (`qnkddysjbiauplefuxaq`).
 
-## Current backend target
-Supabase project: `qnkddysjbiauplefuxaq`
-Region: `eu-central-1`
+## Implemented backend
+- Separate cafe settings, categories, products, modifier groups/modifiers, tables, orders and order items.
+- Row-level security enabled on exposed tables.
+- Customer Edge Function: menu loading, active tables, order creation, modifier validation, totals, tracking tokens and order tracking.
+- Initial 10 active tables and owner profile created.
 
-The database schema and Edge Functions still need to be recreated from the original backend before the application can be considered production-ready.
+## Deployment
+The repository contains a GitHub Actions bootstrap workflow that copies the pinned frontend baseline, applies the 20grams Cafe branding/footer, points the customer frontend at the new Supabase project, and installs GitHub Pages deployment.
+
+## Remaining production blocker
+The original Supabase project is not accessible with the current connection (database/Edge Function inspection is denied). The original GitHub repository contains the frontend but not the backend Edge Function source/schema. Therefore the admin backend cannot be truthfully declared a complete 1:1 clone yet without access to the original Supabase backend or an export of its Edge Functions/schema.
+
+Do not connect this project back to the original Supabase project if data isolation is required.
