@@ -1,13 +1,6 @@
 const SUPABASE_URL="https://qnkddysjbiauplefuxaq.supabase.co";
 const SUPABASE_KEY=null;
 const ADMIN_GATEWAY=SUPABASE_URL+"/functions/v1/admin-gateway";
-async function getApiKey(){
-  const response=await fetch("app.js?cache="+Date.now(),{cache:"no-store"});
-  if(!response.ok)throw new Error("تعذر تحميل إعدادات الاتصال.");
-  const source=await response.text();
-  const match=null;
-  return "";
-}
 const ADMIN_TOKEN=(location.hash||"").replace(/^#/,"");
 let ADMIN_SESSION_ID=sessionStorage.getItem("mh_admin_session_id");
 if(!ADMIN_SESSION_ID){ADMIN_SESSION_ID=crypto.randomUUID();sessionStorage.setItem("mh_admin_session_id",ADMIN_SESSION_ID)}
@@ -17,6 +10,7 @@ const money=n=>Number(n||0).toFixed(2)+" EGP";
 function toast(m){const e=$("#toast");if(!e)return;e.textContent=m;e.classList.add("show");setTimeout(()=>e.classList.remove("show"),2600)}
 function label(s){return({new:"جديد 🔔",confirmed:"تم التأكيد",preparing:"قيد التحضير",ready:"جاهز",served:"تم التقديم",completed:"مكتمل",cancelled:"ملغي"})[s]||s}
 function fmt(d){return d?new Date(d).toLocaleString("ar-EG",{dateStyle:"short",timeStyle:"short"}):"—"}
+function displayOrderNumber(value){const raw=String(value||"");const parts=raw.split("-");if(parts.length===3&&parts[0]==="20G")return {short:parts[2],reference:raw};return {short:raw||"—",reference:""};}
 function requestOrderNotifications(){
  if(!("Notification" in window)){toast("المتصفح لا يدعم إشعارات الطلبات");return}
  Notification.requestPermission().then(p=>{notificationPermission=p;updateNotificationButton();toast(p==="granted"?"تم تفعيل إشعارات الطلبات":p==="denied"?"الإشعارات مرفوضة من إعدادات المتصفح":"لم يتم تفعيل الإشعارات")}).catch(()=>toast("تعذر تفعيل الإشعارات"));
@@ -55,7 +49,6 @@ async function gateway(body){
   const controller=new AbortController();
   const timer=setTimeout(()=>controller.abort(),20000);
   try{
-    const apiKey=await getApiKey();
     const response=await fetch(ADMIN_GATEWAY,{
       method:"POST",
       headers:{"Content-Type":"application/json"},
@@ -183,7 +176,7 @@ async function orders(){
    return '<div class="item-row invoice-item"><div><strong>'+(i.price_unit==="kg"?Number(i.quantity||0).toFixed(1)+" كجم":Number(i.quantity||0)+" قطعة")+" × "+String(i.product_name||"منتج")+'</strong><div class="invoice-sub">'+money(i.unit_price)+(i.price_unit==="kg"?" للكيلو":" للقطعة")+" "+itemMods+"</div>"+note+'</div><b>'+money(i.line_total)+"</b></div>";
   }).join(""):'<div class="invoice-note">لا توجد تفاصيل منتجات محفوظة لهذا الطلب.</div>';
   const opts=["new","confirmed","preparing","ready","served","completed","cancelled"].map(s=>'<option value="'+s+'" '+(s===o.status?"selected":"")+'>'+label(s)+"</option>").join("");
-  return '<article class="order-card"><div class="order-top"><div><div class="order-no">#'+o.order_number+'</div><span class="table-tag">تيك أواي</span></div><span class="price">'+money(o.total)+'</span></div><div class="order-meta"><span>📅 '+fmt(o.created_at)+'</span><span>🕐 '+(o.created_at?new Date(o.created_at).toLocaleTimeString("ar-EG",{hour:"2-digit",minute:"2-digit"}):"—")+'</span><span>👤 الزبون: '+(o.customer_name||"—")+(o.customer_phone?" · "+o.customer_phone:"")+'</span></div><div class="items"><div class="invoice-title">تفاصيل الفاتورة</div>'+itemsHtml+'<div class="invoice-totals"><div><span>المجموع الفرعي</span><b>'+money(o.subtotal)+'</b></div><div><span>الضريبة ('+Number(o.tax_percent||0)+"%)</span><b>"+money(o.tax_amount)+'</b></div><div><span>الخدمة ('+Number(o.service_percent||0)+"%)</span><b>"+money(o.service_amount)+'</b></div><div class="invoice-total"><span>الإجمالي</span><strong>'+money(o.total)+'</strong></div></div>'+(o.customer_note?'<div class="invoice-note order-note">ملاحظة الطلب: '+o.customer_note+"</div>":"")+'</div><div class="status-row"><select class="status-select" data-status="'+o.id+'">'+opts+'</select><select class="eta-select" data-eta="'+o.id+'"><option value="">بدون وقت تقديري</option><option value="15">بعد 15 دقيقة</option><option value="20">بعد 20 دقيقة</option><option value="30">بعد 30 دقيقة</option><option value="45">بعد 45 دقيقة</option><option value="60">بعد ساعة</option><option value="90">بعد ساعة ونصف</option><option value="120">بعد ساعتين</option></select></div><div class="eta-line">'+(o.estimated_ready_at?"موعد متوقع: <b>"+fmt(o.estimated_ready_at)+"</b>":"يمكن ترك الوقت فارغًا.")+"</div></article>";
+  const orderDisplay=displayOrderNumber(o.order_number);\n  return '<article class="order-card"><div class="order-top"><div><div class="order-no">طلب #'+orderDisplay.short+'</div>'+(orderDisplay.reference?'<small class="order-reference">الرقم المرجعي: '+orderDisplay.reference+'</small>':'')+'<span class="table-tag">تيك أواي</span></div><span class="price">'+money(o.total)+'</span></div><div class="order-meta"><span>📅 '+fmt(o.created_at)+'</span><span>🕐 '+(o.created_at?new Date(o.created_at).toLocaleTimeString("ar-EG",{hour:"2-digit",minute:"2-digit"}):"—")+'</span><span>👤 الزبون: '+(o.customer_name||"—")+(o.customer_phone?" · "+o.customer_phone:"")+'</span></div><div class="items"><div class="invoice-title">تفاصيل الفاتورة</div>'+itemsHtml+'<div class="invoice-totals"><div><span>المجموع الفرعي</span><b>'+money(o.subtotal)+'</b></div><div><span>الضريبة ('+Number(o.tax_percent||0)+"%)</span><b>"+money(o.tax_amount)+'</b></div><div><span>الخدمة ('+Number(o.service_percent||0)+"%)</span><b>"+money(o.service_amount)+'</b></div><div class="invoice-total"><span>الإجمالي</span><strong>'+money(o.total)+'</strong></div></div>'+(o.customer_note?'<div class="invoice-note order-note">ملاحظة الطلب: '+o.customer_note+"</div>":"")+'</div><div class="status-row"><select class="status-select" data-status="'+o.id+'">'+opts+'</select><select class="eta-select" data-eta="'+o.id+'"><option value="">بدون وقت تقديري</option><option value="15">بعد 15 دقيقة</option><option value="20">بعد 20 دقيقة</option><option value="30">بعد 30 دقيقة</option><option value="45">بعد 45 دقيقة</option><option value="60">بعد ساعة</option><option value="90">بعد ساعة ونصف</option><option value="120">بعد ساعتين</option></select></div><div class="eta-line">'+(o.estimated_ready_at?"موعد متوقع: <b>"+fmt(o.estimated_ready_at)+"</b>":"يمكن ترك الوقت فارغًا.")+"</div></article>";
  }).join(""):'<div class="notice">لا توجد طلبات حتى الآن.</div>';
  $("#view").innerHTML=html+"</div>";
  const applyPeriod=()=>{const a=$("#salesFrom").value,b=$("#salesTo").value;if(!a||!b)return toast("اختار تاريخ البداية والنهاية");if(a>b)return toast("تاريخ البداية يجب أن يكون قبل تاريخ النهاية");localStorage.setItem("as_cafe_sales_from",a);localStorage.setItem("as_cafe_sales_to",b);orders()};
