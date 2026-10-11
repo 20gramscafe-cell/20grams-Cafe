@@ -13,3 +13,5 @@ html,body{min-height:100%;}body{min-height:100dvh;display:flex;flex-direction:co
 .developer-footer strong{display:block;color:#fff0c9;font-size:15px;font-weight:800;letter-spacing:.3px}
 .developer-footer a{display:inline-block;margin-top:7px;padding:5px 14px;border:1px solid rgba(218,181,101,.42);border-radius:999px;color:#f1d28d;text-decoration:none;font-weight:700}
 .developer-footer a:hover{background:rgba(218,181,101,.14)}
+
+.order-reference{display:block;margin:3px 0 6px;font-size:11px;line-height:1.5;color:#b9a77f;direction:ltr;text-align:right;overflow-wrap:anywhere}
