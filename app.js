@@ -167,7 +167,7 @@ function renderCustomerInvoice(order, cartItems){
 async function refreshCustomerOrder(){if(!state.trackingToken)return;const r=await db.functions.invoke("customer-gateway",{body:{action:"get_order",token:state.trackingToken}});if(r.error||!r.data?.order)return;const o=r.data.order;$("#successNumber").textContent="#"+(o.order_number||"----");$("#customerStatus").textContent=statusLabel(o.status);$("#customerStaff").textContent=(o.assigned_staff_name||"لم يبدأ التجهيز بعد")+(o.assigned_at?" · "+new Date(o.assigned_at).toLocaleString("ar-EG",{dateStyle:"short",timeStyle:"short"}):"");$("#customerCreated").textContent=new Date(o.created_at).toLocaleString("ar-EG",{dateStyle:"short",timeStyle:"short"});$("#customerEta").textContent=o.estimated_ready_at?new Date(o.estimated_ready_at).toLocaleString("ar-EG",{dateStyle:"short",timeStyle:"short"}):"لم يتم تحديده";if(o.status==="completed"||o.status==="cancelled"){clearInterval(state.trackingTimer);state.trackingTimer=null}}
 function normalizeEgyptianPhone(value){
  const arabicDigits={"٠":"0","١":"1","٢":"2","٣":"3","٤":"4","٥":"5","٦":"6","٧":"7","٨":"8","٩":"9","۰":"0","۱":"1","۲":"2","۳":"3","۴":"4","۵":"5","۶":"6","۷":"7","۸":"8","۹":"9"};
- let phone=String(value||"").replace(/[٠-٩۰-۹]/g,ch=>arabicDigits[ch]).replace(/[\\s().-]/g,"");
+ let phone=String(value||"").replace(/[٠-٩۰-۹]/g,ch=>arabicDigits[ch]).replace(/\s|[().-]/g,"");
  if(phone.startsWith("+20"))phone="0"+phone.slice(3);
  else if(phone.startsWith("0020"))phone="0"+phone.slice(4);
  else if(phone.startsWith("20"))phone="0"+phone.slice(2);
