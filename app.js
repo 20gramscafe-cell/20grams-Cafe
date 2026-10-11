@@ -165,16 +165,28 @@ function renderCustomerInvoice(order, cartItems){
  box.innerHTML='<div class="customer-invoice-title">🧾 تفاصيل الفاتورة</div><div class="customer-invoice-meta"><span>رقم الطلب <b>#'+orderNumber+'</b></span><span>📅 '+orderDate+'</span><span>🕐 '+orderTime+'</span></div>'+rows+'<div class="customer-invoice-totals"><div><span>المجموع الفرعي</span><b>'+money(subtotal)+'</b></div><div><span>الضريبة ('+taxPercent+'%)</span><b>'+money(tax)+'</b></div><div><span>الخدمة ('+servicePercent+'%)</span><b>'+money(service)+'</b></div><div class="customer-invoice-total"><span>الإجمالي</span><strong>'+money(total)+'</strong></div></div>';
 }
 async function refreshCustomerOrder(){if(!state.trackingToken)return;const r=await db.functions.invoke("customer-gateway",{body:{action:"get_order",token:state.trackingToken}});if(r.error||!r.data?.order)return;const o=r.data.order;$("#successNumber").textContent="#"+(o.order_number||"----");$("#customerStatus").textContent=statusLabel(o.status);$("#customerStaff").textContent=(o.assigned_staff_name||"لم يبدأ التجهيز بعد")+(o.assigned_at?" · "+new Date(o.assigned_at).toLocaleString("ar-EG",{dateStyle:"short",timeStyle:"short"}):"");$("#customerCreated").textContent=new Date(o.created_at).toLocaleString("ar-EG",{dateStyle:"short",timeStyle:"short"});$("#customerEta").textContent=o.estimated_ready_at?new Date(o.estimated_ready_at).toLocaleString("ar-EG",{dateStyle:"short",timeStyle:"short"}):"لم يتم تحديده";if(o.status==="completed"||o.status==="cancelled"){clearInterval(state.trackingTimer);state.trackingTimer=null}}
+function normalizeEgyptianPhone(value){
+ const arabicDigits={"٠":"0","١":"1","٢":"2","٣":"3","٤":"4","٥":"5","٦":"6","٧":"7","٨":"8","٩":"9","۰":"0","۱":"1","۲":"2","۳":"3","۴":"4","۵":"5","۶":"6","۷":"7","۸":"8","۹":"9"};
+ let phone=String(value||"").replace(/[٠-٩۰-۹]/g,ch=>arabicDigits[ch]).replace(/[\\s().-]/g,"");
+ if(phone.startsWith("+20"))phone="0"+phone.slice(3);
+ else if(phone.startsWith("0020"))phone="0"+phone.slice(4);
+ else if(phone.startsWith("20"))phone="0"+phone.slice(2);
+ return /^01[0125][0-9]{8}$/.test(phone)?phone:null;
+}
 async function sendOrder(){
  if(!state.cart.length)return toast("السلة فارغة");
  const customerName=$("#customerName").value.trim();
  if(!customerName)return toast("اسم الزبون مطلوب قبل تأكيد الطلب");
+ const rawPhone=$("#customerPhone").value.trim();
+ const customerPhone=normalizeEgyptianPhone(rawPhone);
+ if(!rawPhone)return toast("رقم التليفون المصري مطلوب");
+ if(!customerPhone)return toast("اكتب رقم موبايل مصري صحيح: 01xxxxxxxxx");
  const btn=$("#sendOrder");btn.disabled=true;btn.textContent="جاري إرسال الطلب…";
 
  const payload={
   action:"create_order",
   customer_name:customerName,
-  customer_phone:$("#customerPhone").value.trim()||null,
+  customer_phone:customerPhone,
   customer_note:$("#orderNote").value.trim()||null,
   items:state.cart.map(function(i){return {
    product_id:i.product.id,
