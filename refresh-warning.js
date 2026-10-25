@@ -1,17 +1,22 @@
 (function(){
-  function hasTrackedOrders(){
+  function hasUnsavedChanges(){
     try{
-      const x=JSON.parse(localStorage.getItem("as_cafe_order_tokens")||"[]");
-      return Array.isArray(x)&&x.length>0;
-    }catch(e){return false}
+      const cart=JSON.parse(localStorage.getItem("20grams_cart")||"null");
+      if(Array.isArray(cart)&&cart.length)return true;
+    }catch(e){}
+    const cartItems=document.querySelectorAll("#cartItems .cart-item, #cartItems [data-cart-item]");
+    if(cartItems.length)return true;
+    const name=document.getElementById("customerName");
+    const phone=document.getElementById("customerPhone");
+    const note=document.getElementById("orderNote");
+    if(name&&name.value.trim())return true;
+    if(phone&&phone.value.trim())return true;
+    if(note&&note.value.trim())return true;
+    return false;
   }
   window.addEventListener("beforeunload",function(e){
-    if(!hasTrackedOrders())return;
+    if(!hasUnsavedChanges())return;
     e.preventDefault();
-    e.returnValue="طلباتك لن تُلغى، لكن تحديث الصفحة سيخفيها من خانة طلباتي ولن تقدر تتابعها من الجهاز ده.";
-  });
-  window.addEventListener("pagehide",function(){
-    if(!hasTrackedOrders())return;
-    try{localStorage.removeItem("as_cafe_order_tokens")}catch(e){}
+    e.returnValue="";
   });
 })();
