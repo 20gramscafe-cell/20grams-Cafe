@@ -26,7 +26,7 @@ function announceNewOrder(order){
  const number=order.order_number||"—";
  toast("🔔 وصل طلب جديد #"+number);
  try{if("Notification" in window&&Notification.permission==="granted"){const n=new Notification("طلب جديد — 20grams Cafe",{body:"وصل طلب جديد رقم #"+number,tag:"mh-order-"+order.id,renotify:false});n.onclick=()=>{window.focus();currentView="orders";renderView();n.close()}}}catch(e){console.warn("Notification unavailable",e)}
- try{const C=window.AudioContext||window.webkitAudioContext;if(C){const ctx=new C(),osc=ctx.createOscillator(),gain=ctx.createGain();osc.type="sine";osc.frequency.value=880;gain.gain.value=.12;osc.connect(gain);gain.connect(ctx.destination);osc.start();osc.stop(ctx.currentTime+.22);osc.onended=()=>ctx.close()}}catch(e){}
+ try{const C=window.AudioContext||window.webkitAudioContext;if(C){const ctx=new C();[1046,784,1046].forEach((hz,i)=>{const osc=ctx.createOscillator(),gain=ctx.createGain(),start=ctx.currentTime+i*.2;osc.type="sine";osc.frequency.value=hz;gain.gain.setValueAtTime(.001,start);gain.gain.exponentialRampToValueAtTime(.13,start+.025);gain.gain.exponentialRampToValueAtTime(.001,start+.17);osc.connect(gain);gain.connect(ctx.destination);osc.start(start);osc.stop(start+.18);osc.onended=()=>{if(i===2)ctx.close()}})}}catch(e){}
 }
 async function checkForNewOrders(initial=false){
  const r=await db.from("orders").select("id,order_number,created_at,status").order("created_at",{ascending:false}).limit(20);
