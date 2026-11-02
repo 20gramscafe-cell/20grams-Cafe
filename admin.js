@@ -125,24 +125,7 @@ async function boot(passwordPassed=false){
       showPasswordLogin();
       return;
     }
-    const result=await gateway({op:"lock",action:"acquire"});
-    if(result.error){
-      showMessage("تعذر فتح الإدارة",result.error.message);
-      return;
-    }
-    if(!result.data){
-      showMessage("الإدارة قيد الاستخدام","هناك جهاز آخر يستخدم لوحة الإدارة حاليًا.");
-      return;
-    }
-    lockTimer=setInterval(async()=>{
-      const heartbeat=await lock("heartbeat");
-      if(!heartbeat)console.warn("20grams Cafe admin heartbeat failed; will retry without closing the page.");
-    },7000);
-    window.addEventListener("pagehide",()=>{
-      try{
-        navigator.sendBeacon(ADMIN_GATEWAY,new Blob([JSON.stringify({token:ADMIN_TOKEN,sessionId:ADMIN_SESSION_ID,op:"lock",action:"release"})],{type:"application/json"}));
-      }catch(_){}
-    });
+    // لوحة الإدارة تسمح الآن بفتحها من أكثر من جهاز في نفس الوقت.
     await enter();
   }catch(error){
     showMessage("تعذر تشغيل لوحة الإدارة","حدث خطأ أثناء تشغيل الصفحة: "+(error?.message||"خطأ غير معروف."));
