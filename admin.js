@@ -26,18 +26,21 @@ function updateAdminTabBadge(count){
 }
 
 let notificationRequestPending=false;
+const NOTIFICATIONS_ENABLED_KEY="20grams_order_notifications_enabled";
+function areOrderNotificationsEnabled(){return localStorage.getItem(NOTIFICATIONS_ENABLED_KEY)==="true"}
 async function requestOrderNotifications(){
  const b=$("#enableNotifications");
  if(!("Notification" in window)){toast("المتصفح لا يدعم إشعارات الطلبات");updateNotificationButton();return}
  if(notificationRequestPending)return;
- if(Notification.permission==="granted"){notificationPermission="granted";updateNotificationButton();toast("إشعارات الطلبات مفعّلة بالفعل");return}
+ if(Notification.permission==="granted"){notificationPermission="granted";localStorage.setItem(NOTIFICATIONS_ENABLED_KEY,"true");updateNotificationButton();toast("تم تشغيل إشعارات الطلبات");return}
  if(Notification.permission==="denied"){notificationPermission="denied";updateNotificationButton();toast("الإشعارات محظورة؛ فعّلها من إعدادات الموقع في المتصفح");return}
  notificationRequestPending=true;
  if(b){b.disabled=true;b.textContent="⏳ جارٍ طلب إذن الإشعارات..."}
  try{
   const permission=await Notification.requestPermission();
   notificationPermission=permission;
-  toast(permission==="granted"?"تم تفعيل إشعارات الطلبات":permission==="denied"?"الإشعارات محظورة؛ فعّلها من إعدادات الموقع في المتصفح":"لم يتم منح إذن الإشعارات");
+  if(permission==="granted")localStorage.setItem(NOTIFICATIONS_ENABLED_KEY,"true");
+  toast(permission==="granted"?"تم تشغيل إشعارات الطلبات":permission==="denied"?"الإشعارات محظورة؛ فعّلها من إعدادات الموقع في المتصفح":"لم يتم منح إذن الإشعارات");
  }catch(error){
   console.warn("Notification permission request failed",error);
   toast("تعذر طلب إذن الإشعارات؛ راجع إعدادات الموقع في المتصفح");
@@ -52,14 +55,18 @@ function updateNotificationButton(){
  notificationPermission=Notification.permission;
  if(notificationRequestPending){b.textContent="⏳ جارٍ طلب إذن الإشعارات...";b.disabled=true;return}
  b.disabled=false;
- b.textContent=notificationPermission==="granted"?"🔔 الإشعارات مفعّلة":notificationPermission==="denied"?"🔕 الإشعارات محظورة":"🔔 تفعيل إشعارات الطلبات";
- b.classList.toggle("notifications-on",notificationPermission==="granted");
+ if(notificationPermission==="granted"){
+  b.textContent=areOrderNotificationsEnabled()?"🔕 إيقاف الإشعارات":"🔔 تشغيل الإشعارات";
+ }else{
+  b.textContent=notificationPermission==="denied"?"🔕 الإشعارات محظورة":"🔔 تفعيل إشعارات الطلبات";
+ }
+ b.classList.toggle("notifications-on",notificationPermission==="granted"&&areOrderNotificationsEnabled());
 }
 
 function announceNewOrder(order){
  const number=order.order_number||"—";
  toast("🔔 وصل طلب جديد #"+number);
- try{if("Notification" in window&&Notification.permission==="granted"){const n=new Notification("طلب جديد — 20grams Cafe",{body:"وصل طلب جديد رقم #"+number,tag:"mh-order-"+order.id,renotify:false});n.onclick=()=>{window.focus();currentView="orders";renderView();n.close()}}}catch(e){console.warn("Notification unavailable",e)}
+ try{if("Notification" in window&&Notification.permission==="granted"&&areOrderNotificationsEnabled()){const n=new Notification("طلب جديد — 20grams Cafe",{body:"وصل طلب جديد رقم #"+number,tag:"mh-order-"+order.id,renotify:false});n.onclick=()=>{window.focus();currentView="orders";renderView();n.close()}}}catch(e){console.warn("Notification unavailable",e)}
  try{const C=window.AudioContext||window.webkitAudioContext;if(C){const ctx=new C();[1046,784,1046].forEach((hz,i)=>{const osc=ctx.createOscillator(),gain=ctx.createGain(),start=ctx.currentTime+i*.2;osc.type="sine";osc.frequency.value=hz;gain.gain.setValueAtTime(.001,start);gain.gain.exponentialRampToValueAtTime(.13,start+.025);gain.gain.exponentialRampToValueAtTime(.001,start+.17);osc.connect(gain);gain.connect(ctx.destination);osc.start(start);osc.stop(start+.18);osc.onended=()=>{if(i===2)ctx.close()}})}}catch(e){}
 }
 async function checkForNewOrders(initial=false){
@@ -269,7 +276,7 @@ async function settingsView(){
 }
 document.addEventListener("DOMContentLoaded",()=>{
   document.querySelectorAll("[data-view]").forEach(b=>b.addEventListener("click",()=>{currentView=b.dataset.view;renderView()}));
-  const notificationButton=$("#enableNotifications");if(notificationButton)notificationButton.addEventListener("click",requestOrderNotifications);
+  const notificationButton=$("#enableNotifications");if(notificationButton)notificationButton.addEventListener("click",()=>{if("Notification" in window&&Notification.permission==="granted"){localStorage.setItem(NOTIFICATIONS_ENABLED_KEY,String(!areOrderNotificationsEnabled()));updateNotificationButton();toast(areOrderNotificationsEnabled()?"تم تشغيل إشعارات الطلبات":"تم إيقاف إشعارات الطلبات");return}requestOrderNotifications()});
   updateNotificationButton();
   boot();
 });
