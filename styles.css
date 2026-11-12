@@ -128,3 +128,13 @@ body{overflow-x:hidden}
  .modal-card,.success-card,.orders-card{max-height:calc(100dvh - 12px)}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+
+/* Keep the customer logo reading left-to-right: 20GRAMS */
+.topbar .brand-mark,
+footer:not(.developer-footer) .brand-mark {
+  direction: ltr;
+  unicode-bidi: isolate;
+  flex-direction: row;
+  white-space: nowrap;
+}
