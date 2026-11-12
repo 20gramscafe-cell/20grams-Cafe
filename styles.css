@@ -43,3 +43,88 @@ html,body{min-height:100%;}body{min-height:100dvh;display:flex;flex-direction:co
 .developer-footer strong{display:block;color:#fff0c9;font-size:15px;font-weight:800;letter-spacing:.3px}
 .developer-footer a{display:inline-block;margin-top:7px;padding:5px 14px;border:1px solid rgba(218,181,101,.42);border-radius:999px;color:#f1d28d;text-decoration:none;font-weight:700}
 .developer-footer a:hover{background:rgba(218,181,101,.14)}
+
+
+/* Responsive polish and unified 20GRAMS logo */
+.brand-mark{display:inline-flex;align-items:center;justify-content:center;gap:5px;font-family:"Playfair Display",Georgia,serif;font-size:clamp(24px,4vw,31px);font-weight:800;letter-spacing:-1.4px;line-height:1;color:#fff8eb;text-shadow:0 2px 18px rgba(216,173,92,.14)}
+.brand-mark span{color:var(--gold2);font-size:.78em;letter-spacing:-.7px}
+.brand-lockup{padding:5px 9px;border:1px solid rgba(216,173,92,.38);border-radius:12px;background:linear-gradient(145deg,rgba(216,173,92,.11),rgba(255,255,255,.015))}
+.topbar{gap:12px;min-width:0}
+.top-actions{flex:0 0 auto}
+.topbar>*{min-width:0}
+main{width:100%;min-width:0}
+.hero-content,.menu-section,.product-grid{min-width:0}
+.product-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+.product{min-width:0}
+.product-body h3,.product-body p{overflow-wrap:anywhere}
+.product-img{background-position:center;background-size:cover}
+.drawer,.modal-card,.success-card,.orders-card{max-width:100%;min-width:0}
+.drawer{padding-bottom:env(safe-area-inset-bottom)}
+.cart-content,.cart-items,.bill{min-width:0}
+.cart-item-top,.customer-invoice-item{min-width:0;overflow-wrap:anywhere}
+.customer-invoice-item strong{white-space:normal}
+.modal{padding:clamp(8px,2vw,20px)}
+.modal-card,.success-card,.orders-card{max-height:calc(100dvh - 24px);overflow-y:auto;overscroll-behavior:contain}
+.success-actions{position:sticky;bottom:0;padding-top:8px;background:linear-gradient(transparent,#15110f 25%)}
+body{overflow-x:hidden}
+@media(max-width:900px){.product-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.hero{min-height:580px}}
+@media(max-width:680px){
+ .topbar{height:66px;padding:0 12px}
+ .brand-lockup{padding:5px 7px}
+ .brand-lockup small{font-size:10px;letter-spacing:1.5px}
+ .brand-mark{font-size:25px}
+ .top-actions{gap:6px}
+ .orders-btn{height:41px;padding:0 10px;font-size:12px}
+ .icon-btn{width:41px;height:41px}
+ .hero{min-height:560px;padding:52px 20px;background-position:center}
+ .hero-content{width:100%}
+ .hero h1{font-size:clamp(43px,10vw,60px);overflow-wrap:anywhere}
+ .hero p{font-size:15px;line-height:1.8}
+ .menu-section{padding:48px 14px}
+ .section-head{gap:12px}
+ .section-head h2{font-size:clamp(28px,7vw,37px)}
+ .chips{padding:22px 0 18px;gap:7px}
+ .chip{padding:9px 13px;font-size:12px}
+ .product-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+ .product-img{height:clamp(115px,34vw,165px)}
+ .product-body{padding:12px}
+ .product-body h3{font-size:clamp(13px,3.5vw,16px)}
+ .product-body p{font-size:11px;min-height:32px}
+ .price-row{gap:5px;align-items:center}
+ .price{font-size:12px}
+ .add{width:34px;height:34px;flex:0 0 34px}
+ .drawer{width:100%;right:-105%;border-left:0}
+ .drawer.open{right:0}
+ .drawer-head{padding:17px}
+ .cart-content{margin:0 9px 9px}
+ .bill,.cart-items{padding:14px}
+ .modal{padding:8px}
+ .modal-card,.success-card,.orders-card{width:100%;padding:17px;border-radius:18px}
+ .modal-product-img{height:170px}
+ .modal-card h2,.success-card h2{font-size:26px}
+ .success-card{padding:25px 15px}
+ .success-actions .primary-btn{font-size:13px;padding:11px 8px}
+ .order-number{font-size:30px}
+ .order-tracking{grid-template-columns:1fr 1fr}
+ footer:not(.developer-footer){padding:32px 18px;gap:10px;flex-direction:column;text-align:center}
+ footer:not(.developer-footer) .brand-mark{font-size:27px}
+ footer:not(.developer-footer) p{font-size:12px}
+ .developer-footer{width:calc(100% - 20px);padding:12px!important;margin:20px auto 12px!important}
+}
+@media(max-width:380px){
+ .topbar{padding:0 8px}
+ .brand-mark{font-size:22px}
+ .orders-btn{font-size:11px;padding:0 8px}
+ .hero{min-height:510px;padding:42px 15px}
+ .hero h1{font-size:42px}
+ .product-grid{gap:8px}
+ .product-body{padding:10px}
+ .product-img{height:112px}
+ .order-tracking{grid-template-columns:1fr}
+}
+@media(orientation:landscape) and (max-height:520px){
+ .hero{min-height:420px;padding-top:35px;padding-bottom:35px}
+ .drawer{height:100dvh}
+ .modal-card,.success-card,.orders-card{max-height:calc(100dvh - 12px)}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
