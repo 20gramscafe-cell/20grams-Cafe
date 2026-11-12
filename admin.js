@@ -5,6 +5,7 @@ const ADMIN_TOKEN=(location.hash||"").replace(/^#/,"");
 let ADMIN_SESSION_ID=sessionStorage.getItem("mh_admin_session_id");
 if(!ADMIN_SESSION_ID){ADMIN_SESSION_ID=crypto.randomUUID();sessionStorage.setItem("mh_admin_session_id",ADMIN_SESSION_ID)}
 let profile=null,settings=null,currentView="orders",lockTimer=null,orderMonitorTimer=null,orderMonitorBusy=false,knownOrderIds=null,notificationPermission="default";
+let orderAudioContext=null;
 const $=s=>document.querySelector(s);
 const money=n=>Number(n||0).toFixed(2)+" EGP";
 function toast(m){const e=$("#toast");if(!e)return;e.textContent=m;e.classList.add("show");setTimeout(()=>e.classList.remove("show"),2600)}
@@ -67,7 +68,7 @@ function announceNewOrder(order){
  const number=order.order_number||"—";
  toast("🔔 وصل طلب جديد #"+number);
  try{if("Notification" in window&&Notification.permission==="granted"&&areOrderNotificationsEnabled()){const n=new Notification("طلب جديد — 20grams Cafe",{body:"وصل طلب جديد رقم #"+number,tag:"mh-order-"+order.id,renotify:false});n.onclick=()=>{window.focus();currentView="orders";renderView();n.close()}}}catch(e){console.warn("Notification unavailable",e)}
- try{const C=window.AudioContext||window.webkitAudioContext;if(C){const ctx=new C();if(ctx.state==="suspended")ctx.resume();[1175,880,1175,1568,1175,1568].forEach((hz,i)=>{const osc=ctx.createOscillator(),gain=ctx.createGain(),start=ctx.currentTime+i*.28;osc.type="square";osc.frequency.value=hz;gain.gain.setValueAtTime(.001,start);gain.gain.exponentialRampToValueAtTime(1,start+.02);gain.gain.setValueAtTime(.85,start+.34);gain.gain.exponentialRampToValueAtTime(.001,start+.48);osc.connect(gain);gain.connect(ctx.destination);osc.start(start);osc.stop(start+.5);osc.onended=()=>{if(i===5)ctx.close()}})}}catch(e){}
+ try{const C=window.AudioContext||window.webkitAudioContext;if(C){if(!orderAudioContext)orderAudioContext=new C();const ctx=orderAudioContext;if(ctx.state==="suspended")await ctx.resume();[1046,1318,1568,1318,1568,1760,1568].forEach((hz,i)=>{const osc=ctx.createOscillator(),gain=ctx.createGain(),start=ctx.currentTime+i*.24;osc.type="square";osc.frequency.value=hz;gain.gain.setValueAtTime(.0001,start);gain.gain.exponentialRampToValueAtTime(1,start+.015);gain.gain.setValueAtTime(.95,start+.19);gain.gain.exponentialRampToValueAtTime(.0001,start+.23);osc.connect(gain);gain.connect(ctx.destination);osc.start(start);osc.stop(start+.24)})}}catch(e){console.warn("Order alert sound unavailable",e)}
 }
 async function checkForNewOrders(initial=false){
  // Prevent overlapping one-second polls: an older, slower response must never overwrite a newer badge count.
@@ -228,12 +229,12 @@ async function orders(){
  const byOrder=new Map();items.forEach(i=>{if(!byOrder.has(i.order_id))byOrder.set(i.order_id,[]);byOrder.get(i.order_id).push(i)});
  const modsByItem=new Map();mods.forEach(m=>{if(!modsByItem.has(m.order_item_id))modsByItem.set(m.order_item_id,[]);modsByItem.get(m.order_item_id).push(m)});
  const open=rows.filter(x=>x.status!=="completed"&&x.status!=="cancelled");
- const today=new Date(),todayLocal=[today.getFullYear(),String(today.getMonth()+1).padStart(2,"0"),String(today.getDate()).padStart(2,"0")].join("-");
- const savedFrom=localStorage.getItem("as_cafe_sales_from")||todayLocal;
- const savedTo=localStorage.getItem("as_cafe_sales_to")||todayLocal;
- const parseLocalDate=v=>{const p=String(v).split("-").map(Number);return p.length===3?new Date(p[0],p[1]-1,p[2]):new Date(NaN)};
- const fromDate=parseLocalDate(savedFrom),toDate=parseLocalDate(savedTo);toDate.setDate(toDate.getDate()+1);
- const inPeriod=rows.filter(x=>{const d=new Date(x.created_at);return !Number.isNaN(d.getTime())&&d>=fromDate&&d<toDate&&x.status==="completed"});
+ const cairoDateKey=value=>{const parts=new Intl.DateTimeFormat("en-GB",{timeZone:"Africa/Cairo",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(value);const part=type=>parts.find(p=>p.type===type)?.value||"";return part("year")+"-"+part("month")+"-"+part("day")};
+ const todayCairo=cairoDateKey(new Date()),utcToday=new Date().toISOString().slice(0,10);
+ let savedFrom=localStorage.getItem("as_cafe_sales_from"),savedTo=localStorage.getItem("as_cafe_sales_to");
+ if(savedFrom===utcToday&&savedTo===utcToday&&utcToday!==todayCairo){savedFrom=todayCairo;savedTo=todayCairo;localStorage.setItem("as_cafe_sales_from",savedFrom);localStorage.setItem("as_cafe_sales_to",savedTo)}
+ savedFrom=savedFrom||todayCairo;savedTo=savedTo||todayCairo;
+ const inPeriod=rows.filter(x=>{const d=new Date(x.created_at);return !Number.isNaN(d.getTime())&&cairoDateKey(d)>=savedFrom&&cairoDateKey(d)<=savedTo&&x.status==="completed"});
  const rev=inPeriod.reduce((s,x)=>s+Number(x.total||0),0);
  let html='<div class="accounting-period"><strong>📊 مدة المحاسبة</strong><label>من <input type="date" id="salesFrom" value="'+savedFrom+'"></label><label>إلى <input type="date" id="salesTo" value="'+savedTo+'"></label><button class="primary-btn" id="applySalesPeriod">حساب</button><span class="period-count">'+inPeriod.length+' طلب مكتمل داخل الفترة</span></div><div class="stats"><div class="stat"><small>إجمالي الطلبات</small><b>'+rows.length+'</b></div><div class="stat"><small>طلبات مفتوحة</small><b>'+open.length+'</b></div><div class="stat"><small>جاهزة</small><b>'+rows.filter(x=>x.status==="ready").length+'</b></div><div class="stat"><small>إجمالي المبيعات للفترة</small><b>'+money(rev)+'</b></div></div><div class="toolbar"><button class="danger-btn" id="clearOrderHistory">🗑 مسح سجل الطلبات بالكامل</button></div><div class="orders">';
  html+=rows.length?rows.map(o=>{
@@ -306,7 +307,7 @@ async function settingsView(){
 }
 document.addEventListener("DOMContentLoaded",()=>{
   document.querySelectorAll("[data-view]").forEach(b=>b.addEventListener("click",()=>{currentView=b.dataset.view;renderView()}));
-  const notificationButton=$("#enableNotifications");if(notificationButton)notificationButton.addEventListener("click",()=>{if("Notification" in window&&Notification.permission==="granted"){localStorage.setItem(NOTIFICATIONS_ENABLED_KEY,String(!areOrderNotificationsEnabled()));updateNotificationButton();toast(areOrderNotificationsEnabled()?"تم تشغيل إشعارات الطلبات":"تم إيقاف إشعارات الطلبات");return}requestOrderNotifications()});
+  const notificationButton=$("#enableNotifications");if(notificationButton)notificationButton.addEventListener("click",async()=>{try{const C=window.AudioContext||window.webkitAudioContext;if(C){if(!orderAudioContext)orderAudioContext=new C();if(orderAudioContext.state==="suspended")await orderAudioContext.resume()}}catch(e){}if("Notification" in window&&Notification.permission==="granted"){localStorage.setItem(NOTIFICATIONS_ENABLED_KEY,String(!areOrderNotificationsEnabled()));updateNotificationButton();toast(areOrderNotificationsEnabled()?"تم تشغيل إشعارات الطلبات":"تم إيقاف إشعارات الطلبات");return}requestOrderNotifications()});
   const logoutButton=$("#logoutAdmin");if(logoutButton)logoutButton.addEventListener("click",logoutAdmin);
   updateNotificationButton();
   boot();
