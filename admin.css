@@ -132,3 +132,71 @@ body>.developer-footer .developer-contacts a span{direction:rtl;font-size:10px;c
 #newProduct{display:inline-flex;align-items:center;justify-content:center;gap:8px;text-align:center;line-height:1.25;min-height:44px;padding:12px 20px;white-space:nowrap;direction:rtl}
 
 .logout-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:36px;padding:8px 14px;border:1px solid rgba(220,105,85,.42);border-radius:10px;background:rgba(160,48,38,.14);color:#ffd5cc;font-family:inherit;font-size:12px;font-weight:800;cursor:pointer;transition:background .2s,border-color .2s}.logout-btn:hover{background:rgba(160,48,38,.28);border-color:rgba(220,105,85,.7)}.logout-btn:focus-visible{outline:2px solid var(--gold2);outline-offset:3px}
+
+
+/* Conservative admin polish: preserve the existing layout and component geometry */
+:root{
+  --ui-border:rgba(216,173,92,.16);
+  --ui-surface:rgba(24,21,17,.96);
+  --ui-gold:#e7c77f;
+}
+body{
+  background-color:#090807;
+  background-image:radial-gradient(ellipse at 78% 0,rgba(117,83,39,.13),transparent 34%),radial-gradient(ellipse at 8% 55%,rgba(70,49,28,.08),transparent 38%),linear-gradient(180deg,#100e0c,#090807 68%);
+}
+.dash-head{border-bottom-color:var(--ui-border)}
+.dash-head h2{font-family:Cairo,Arial,sans-serif;font-weight:800;letter-spacing:-.35px}
+.eyebrow{letter-spacing:1.8px}
+.sidebar{border-left-color:var(--ui-border);box-shadow:-10px 0 28px rgba(0,0,0,.12)}
+.sidebar nav button{font-family:Cairo,Arial,sans-serif;font-weight:700;transition:background-color .18s,border-color .18s,color .18s}
+.sidebar nav button.active{
+  background:linear-gradient(90deg,rgba(216,173,92,.13),rgba(216,173,92,.045));
+  border-color:rgba(216,173,92,.2);
+  color:var(--ui-gold);
+  box-shadow:inset -3px 0 0 var(--gold);
+}
+.staff{gap:8px}
+#staffName{color:#eadfcf}
+.stat,.order-card,.form-card,.table-wrap,.accounting-period{
+  border-color:var(--ui-border);
+  box-shadow:0 7px 22px rgba(0,0,0,.12);
+}
+.stat{background:linear-gradient(145deg,rgba(27,24,20,.98),rgba(19,17,14,.98))}
+.stat small{font-weight:700}
+.stat b{color:#f3dfb8;font-variant-numeric:tabular-nums}
+.order-card{background:linear-gradient(145deg,rgba(25,22,18,.98),rgba(18,16,13,.98))}
+.order-card:hover{border-color:rgba(216,173,92,.3)}
+.order-no{color:var(--ui-gold)}
+.order-meta span{line-height:1.7}
+.items{border-color:rgba(255,255,255,.075);border-radius:12px}
+.invoice-title{color:var(--ui-gold)}
+.invoice-totals .invoice-total strong{color:var(--ui-gold)}
+.table-wrap{background:rgba(20,18,15,.96)}
+.data-table th{background:rgba(216,173,92,.055);color:var(--ui-gold);font-weight:800}
+.data-table td,.data-table th{border-bottom-color:rgba(255,255,255,.065)}
+.data-table tbody tr:hover{background:rgba(216,173,92,.035)}
+.btn-small,.secondary-btn,.danger-btn,.primary-btn,.logout-btn{font-family:Cairo,Arial,sans-serif}
+.btn-small{cursor:pointer;transition:filter .18s,border-color .18s}
+.btn-small:hover{filter:brightness(1.16);border-color:rgba(216,173,92,.35)}
+.primary-btn{box-shadow:0 4px 14px rgba(166,117,49,.12);transition:filter .18s,box-shadow .18s}
+.primary-btn:hover{filter:brightness(1.06);box-shadow:0 6px 18px rgba(166,117,49,.2)}
+.form-card{background:linear-gradient(145deg,rgba(25,22,18,.98),rgba(17,15,13,.98))}
+.form-card h3{color:var(--ui-gold)}
+.form-grid label{font-weight:700}
+.form-grid input,.form-grid select,.form-grid textarea,.toolbar input,.accounting-period input,.status-select,.eta-select{
+  font-family:Cairo,Arial,sans-serif;
+  transition:border-color .18s,box-shadow .18s;
+}
+.form-grid input:focus,.form-grid select:focus,.form-grid textarea:focus,.toolbar input:focus,.accounting-period input:focus,.status-select:focus,.eta-select:focus{
+  outline:none;border-color:rgba(216,173,92,.62);box-shadow:0 0 0 3px rgba(216,173,92,.09);
+}
+.login-card{border-color:rgba(216,173,92,.32)}
+.toast{box-shadow:0 8px 25px rgba(0,0,0,.3)}
+@media(max-width:760px){
+  .sidebar{box-shadow:0 -8px 24px rgba(0,0,0,.24)}
+  .sidebar nav button.active{box-shadow:inset 0 2px 0 var(--gold)}
+  .order-card,.stat,.form-card{box-shadow:0 5px 16px rgba(0,0,0,.14)}
+}
+@media(prefers-reduced-motion:reduce){
+  .sidebar nav button,.btn-small,.primary-btn,.order-card{transition:none}
+}
