@@ -203,3 +203,6 @@ body>.developer-footer .developer-contacts a:active{background:rgba(218,181,101,
  body>.developer-footer .developer-contacts{gap:7px}
  body>.developer-footer .developer-contacts a{flex:1 1 130px;padding:9px 5px;font-size:11px}
 }
+
+/* Discounted product price presentation */
+.customer-old-price{display:inline-block;margin-inline-end:8px;color:#9b8e80;font-size:.82em;text-decoration:line-through;text-decoration-thickness:2px;opacity:.9}.customer-sale-price{display:inline-block;color:#f0c66f;font-weight:900;font-size:1.08em}.product .price{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
