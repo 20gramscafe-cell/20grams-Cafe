@@ -4,7 +4,7 @@ const ADMIN_GATEWAY=SUPABASE_URL+"/functions/v1/admin-gateway";
 const ADMIN_TOKEN=(location.hash||"").replace(/^#/,"");
 let ADMIN_SESSION_ID=sessionStorage.getItem("mh_admin_session_id");
 if(!ADMIN_SESSION_ID){ADMIN_SESSION_ID=crypto.randomUUID();sessionStorage.setItem("mh_admin_session_id",ADMIN_SESSION_ID)}
-let profile=null,settings=null,currentView="orders",lockTimer=null,orderMonitorTimer=null,knownOrderIds=null,notificationPermission="default";
+let profile=null,settings=null,currentView="orders",lockTimer=null,orderMonitorTimer=null,orderMonitorBusy=false,knownOrderIds=null,notificationPermission="default";
 const $=s=>document.querySelector(s);
 const money=n=>Number(n||0).toFixed(2)+" EGP";
 function toast(m){const e=$("#toast");if(!e)return;e.textContent=m;e.classList.add("show");setTimeout(()=>e.classList.remove("show"),2600)}
@@ -70,19 +70,34 @@ function announceNewOrder(order){
  try{const C=window.AudioContext||window.webkitAudioContext;if(C){const ctx=new C();[1046,784,1046].forEach((hz,i)=>{const osc=ctx.createOscillator(),gain=ctx.createGain(),start=ctx.currentTime+i*.2;osc.type="sine";osc.frequency.value=hz;gain.gain.setValueAtTime(.001,start);gain.gain.exponentialRampToValueAtTime(.13,start+.025);gain.gain.exponentialRampToValueAtTime(.001,start+.17);osc.connect(gain);gain.connect(ctx.destination);osc.start(start);osc.stop(start+.18);osc.onended=()=>{if(i===2)ctx.close()}})}}catch(e){}
 }
 async function checkForNewOrders(initial=false){
- const r=await db.from("orders").select("id,order_number,created_at,status").order("created_at",{ascending:false}).limit(1000);
- if(r.error||!Array.isArray(r.data))return;
- updateAdminTabBadge(r.data.filter(o=>o.status==="new").length);
- const current=new Set(r.data.map(o=>String(o.id)));
- if(knownOrderIds===null||initial){knownOrderIds=current;return}
- const fresh=r.data.filter(o=>!knownOrderIds.has(String(o.id))).sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
- knownOrderIds=current;
- if(fresh.length){fresh.forEach(announceNewOrder);if(currentView==="orders")await orders()}
+ // Prevent overlapping one-second polls: an older, slower response must never overwrite a newer badge count.
+ if(orderMonitorBusy)return;
+ orderMonitorBusy=true;
+ try{
+  const r=await db.from("orders").select("id,order_number,created_at,status").order("created_at",{ascending:false}).limit(1000);
+  if(r.error||!Array.isArray(r.data)){
+   console.warn("Order counter refresh failed",r.error?.message||"Invalid response");
+   return;
+  }
+  const current=new Set(r.data.map(o=>String(o.id)));
+  const newCount=r.data.filter(o=>o.status==="new").length;
+  updateAdminTabBadge(newCount);
+  if(knownOrderIds===null||initial){knownOrderIds=current;return}
+  const fresh=r.data.filter(o=>!knownOrderIds.has(String(o.id))).sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+  knownOrderIds=current;
+  if(fresh.length){fresh.forEach(announceNewOrder);if(currentView==="orders")await orders()}
+ }catch(error){
+  console.warn("Order monitor error",error);
+ }finally{
+  orderMonitorBusy=false;
+ }
 }
 function startOrderMonitor(){
  updateNotificationButton();
  if(orderMonitorTimer)clearInterval(orderMonitorTimer);
- checkForNewOrders(true).then(()=>{orderMonitorTimer=setInterval(()=>checkForNewOrders(false),1000)});
+ orderMonitorBusy=false;
+ checkForNewOrders(true);
+ orderMonitorTimer=setInterval(()=>checkForNewOrders(false),1000);
 }
 
 
