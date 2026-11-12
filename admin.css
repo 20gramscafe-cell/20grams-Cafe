@@ -124,3 +124,6 @@ body>.developer-footer .developer-contacts a span{direction:rtl;font-size:10px;c
  body>.developer-footer .developer-contacts{gap:7px}
  body>.developer-footer .developer-contacts a{flex:1 1 145px;padding:9px 6px;font-size:11px}
 }
+
+/* Product discount editor and crossed-out price */
+.discount-editor{display:grid;gap:9px;align-content:start}.discount-editor .secondary-btn{width:100%;cursor:pointer}.old-product-price{color:#a89c8d;font-size:11px;text-decoration:line-through}.form-grid .discount-editor label{display:grid;gap:6px}
