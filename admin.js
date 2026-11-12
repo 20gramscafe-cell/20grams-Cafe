@@ -64,7 +64,7 @@ function updateNotificationButton(){
  b.classList.toggle("notifications-on",notificationPermission==="granted"&&areOrderNotificationsEnabled());
 }
 
-function announceNewOrder(order){
+async function announceNewOrder(order){
  const number=order.order_number||"—";
  toast("🔔 وصل طلب جديد #"+number);
  try{if("Notification" in window&&Notification.permission==="granted"&&areOrderNotificationsEnabled()){const n=new Notification("طلب جديد — 20grams Cafe",{body:"وصل طلب جديد رقم #"+number,tag:"mh-order-"+order.id,renotify:false});n.onclick=()=>{window.focus();currentView="orders";renderView();n.close()}}}catch(e){console.warn("Notification unavailable",e)}
