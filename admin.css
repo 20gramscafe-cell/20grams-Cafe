@@ -15,3 +15,64 @@ html,body{min-height:100%;}body{min-height:100dvh;display:flex;flex-direction:co
 .developer-footer a:hover{background:rgba(218,181,101,.14)}
 
 .order-reference{display:block;margin:3px 0 6px;font-size:11px;line-height:1.5;color:#b9a77f;direction:ltr;text-align:right;overflow-wrap:anywhere}
+
+
+/* Responsive layout + refined 20GRAMS identity */
+.brand-mark{display:inline-flex;align-items:center;justify-content:center;gap:5px;font-family:"Playfair Display",Georgia,serif;font-size:clamp(25px,4vw,36px);font-weight:800;letter-spacing:-1.5px;line-height:1;color:#fff8eb;text-shadow:0 2px 18px rgba(216,173,92,.12)}
+.brand-mark span{color:var(--gold2);font-size:.78em;letter-spacing:-.7px}
+.side-brand .brand-mark{padding:9px 13px;border:1px solid rgba(216,173,92,.42);border-radius:13px;background:linear-gradient(145deg,rgba(216,173,92,.13),rgba(255,255,255,.015));box-shadow:inset 0 0 18px rgba(216,173,92,.05)}
+.dashboard{min-width:0}
+#view{min-width:0}
+.order-card,.stat,.form-card,.accounting-period{min-width:0}
+.order-meta span,.order-reference,.invoice-note{overflow-wrap:anywhere}
+.form-grid>*{min-width:0}
+.form-grid input,.form-grid select,.form-grid textarea{width:100%;max-width:100%;min-width:0}
+.status-row{flex-wrap:wrap}
+.status-select,.eta-select{max-width:100%;min-width:0}
+.toolbar{flex-wrap:wrap}
+.toolbar input{min-width:0;flex:1}
+.table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.data-table{min-width:680px}
+.developer-footer{max-width:min(560px,calc(100% - 28px))}
+@media(max-width:760px){
+ .app{display:block;min-height:100dvh;padding-bottom:76px}
+ .sidebar{position:fixed;z-index:45;top:auto;right:0;bottom:0;left:0;width:100%;height:auto;min-height:0;padding:7px 8px calc(7px + env(safe-area-inset-bottom));border-left:0;border-top:1px solid rgba(216,173,92,.22);background:rgba(13,11,10,.97);backdrop-filter:blur(18px);display:block}
+ .side-brand{display:none}
+ .sidebar nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin:0}
+ .sidebar nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:0;min-height:55px;padding:6px 2px;text-align:center;font-size:11px;line-height:1.25;white-space:normal;border-radius:10px}
+ .sidebar nav button::first-letter{font-size:18px}
+ .dashboard{width:100%;margin:0;padding:18px 14px 25px}
+ .dash-head{align-items:flex-start;gap:12px;flex-wrap:wrap;padding-bottom:16px;margin-bottom:18px}
+ .dash-head h2{font-size:clamp(25px,7vw,34px)}
+ .eyebrow{font-size:9px;letter-spacing:1.5px}
+ .staff{margin-right:auto;align-items:flex-end;gap:5px;font-size:12px}
+ .staff .btn-small{max-width:100%;font-size:11px;padding:8px 10px}
+ .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .stat{padding:13px;border-radius:14px}
+ .stat b{font-size:23px}
+ .order-card{padding:14px;border-radius:15px}
+ .order-no{font-size:19px}
+ .order-top{gap:8px;align-items:flex-start}
+ .status-row>*{flex:1 1 145px}
+ .accounting-period{padding:11px}
+ .form-card{padding:16px}
+ .form-grid{grid-template-columns:minmax(0,1fr);gap:12px}
+ .login-card{padding:26px 20px}
+ .login-card h1{font-size:32px}
+ .developer-footer{margin:20px auto 12px!important}
+}
+@media(max-width:420px){
+ .dashboard{padding-right:10px;padding-left:10px}
+ .dash-head{gap:8px}
+ .staff{width:100%;margin:0;flex-direction:row;justify-content:space-between;align-items:center}
+ .stats{gap:7px}
+ .stat{padding:11px}
+ .stat small{font-size:10px}
+ .stat b{font-size:20px}
+ .toolbar>*{width:100%}
+ .toolbar .primary-btn,.toolbar .danger-btn{width:100%}
+ .order-meta{gap:7px;font-size:11px}
+ .invoice-totals{font-size:10px}
+ .developer-footer{width:calc(100% - 20px)}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
