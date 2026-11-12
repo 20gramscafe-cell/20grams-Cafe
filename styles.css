@@ -130,11 +130,19 @@ body{overflow-x:hidden}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 
 
-/* Keep the customer logo reading left-to-right: 20GRAMS */
+/* Force the customer-facing wordmark to render in the intended LTR order in RTL pages. */
 .topbar .brand-mark,
 footer:not(.developer-footer) .brand-mark {
-  direction: ltr;
-  unicode-bidi: isolate;
-  flex-direction: row;
-  white-space: nowrap;
+  direction: ltr !important;
+  unicode-bidi: isolate !important;
+  display: inline-flex !important;
+  flex-direction: row !important;
+  justify-content: flex-start !important;
+  white-space: nowrap !important;
+}
+.topbar .brand-mark > span,
+footer:not(.developer-footer) .brand-mark > span {
+  direction: ltr !important;
+  unicode-bidi: isolate !important;
+  display: inline-block !important;
 }
