@@ -67,7 +67,7 @@ function announceNewOrder(order){
  const number=order.order_number||"—";
  toast("🔔 وصل طلب جديد #"+number);
  try{if("Notification" in window&&Notification.permission==="granted"&&areOrderNotificationsEnabled()){const n=new Notification("طلب جديد — 20grams Cafe",{body:"وصل طلب جديد رقم #"+number,tag:"mh-order-"+order.id,renotify:false});n.onclick=()=>{window.focus();currentView="orders";renderView();n.close()}}}catch(e){console.warn("Notification unavailable",e)}
- try{const C=window.AudioContext||window.webkitAudioContext;if(C){const ctx=new C();[1175,880,1175,1568].forEach((hz,i)=>{const osc=ctx.createOscillator(),gain=ctx.createGain(),start=ctx.currentTime+i*.24;osc.type="sine";osc.frequency.value=hz;gain.gain.setValueAtTime(.001,start);gain.gain.exponentialRampToValueAtTime(.8,start+.025);gain.gain.exponentialRampToValueAtTime(.001,start+.32);osc.connect(gain);gain.connect(ctx.destination);osc.start(start);osc.stop(start+.34);osc.onended=()=>{if(i===2)ctx.close()}})}}catch(e){}
+ try{const C=window.AudioContext||window.webkitAudioContext;if(C){const ctx=new C();if(ctx.state==="suspended")ctx.resume();[1175,880,1175,1568,1175,1568].forEach((hz,i)=>{const osc=ctx.createOscillator(),gain=ctx.createGain(),start=ctx.currentTime+i*.28;osc.type="square";osc.frequency.value=hz;gain.gain.setValueAtTime(.001,start);gain.gain.exponentialRampToValueAtTime(1,start+.02);gain.gain.setValueAtTime(.85,start+.34);gain.gain.exponentialRampToValueAtTime(.001,start+.48);osc.connect(gain);gain.connect(ctx.destination);osc.start(start);osc.stop(start+.5);osc.onended=()=>{if(i===5)ctx.close()}})}}catch(e){}
 }
 async function checkForNewOrders(initial=false){
  // Prevent overlapping one-second polls: an older, slower response must never overwrite a newer badge count.
@@ -228,10 +228,12 @@ async function orders(){
  const byOrder=new Map();items.forEach(i=>{if(!byOrder.has(i.order_id))byOrder.set(i.order_id,[]);byOrder.get(i.order_id).push(i)});
  const modsByItem=new Map();mods.forEach(m=>{if(!modsByItem.has(m.order_item_id))modsByItem.set(m.order_item_id,[]);modsByItem.get(m.order_item_id).push(m)});
  const open=rows.filter(x=>x.status!=="completed"&&x.status!=="cancelled");
- const savedFrom=localStorage.getItem("as_cafe_sales_from")||new Date().toISOString().slice(0,10);
- const savedTo=localStorage.getItem("as_cafe_sales_to")||new Date().toISOString().slice(0,10);
- const fromDate=new Date(savedFrom+"T00:00:00"),toDate=new Date(savedTo+"T23:59:59.999");
- const inPeriod=rows.filter(x=>{const d=new Date(x.created_at);return !Number.isNaN(d.getTime())&&d>=fromDate&&d<=toDate&&x.status==="completed"});
+ const today=new Date(),todayLocal=[today.getFullYear(),String(today.getMonth()+1).padStart(2,"0"),String(today.getDate()).padStart(2,"0")].join("-");
+ const savedFrom=localStorage.getItem("as_cafe_sales_from")||todayLocal;
+ const savedTo=localStorage.getItem("as_cafe_sales_to")||todayLocal;
+ const parseLocalDate=v=>{const p=String(v).split("-").map(Number);return p.length===3?new Date(p[0],p[1]-1,p[2]):new Date(NaN)};
+ const fromDate=parseLocalDate(savedFrom),toDate=parseLocalDate(savedTo);toDate.setDate(toDate.getDate()+1);
+ const inPeriod=rows.filter(x=>{const d=new Date(x.created_at);return !Number.isNaN(d.getTime())&&d>=fromDate&&d<toDate&&x.status==="completed"});
  const rev=inPeriod.reduce((s,x)=>s+Number(x.total||0),0);
  let html='<div class="accounting-period"><strong>📊 مدة المحاسبة</strong><label>من <input type="date" id="salesFrom" value="'+savedFrom+'"></label><label>إلى <input type="date" id="salesTo" value="'+savedTo+'"></label><button class="primary-btn" id="applySalesPeriod">حساب</button><span class="period-count">'+inPeriod.length+' طلب مكتمل داخل الفترة</span></div><div class="stats"><div class="stat"><small>إجمالي الطلبات</small><b>'+rows.length+'</b></div><div class="stat"><small>طلبات مفتوحة</small><b>'+open.length+'</b></div><div class="stat"><small>جاهزة</small><b>'+rows.filter(x=>x.status==="ready").length+'</b></div><div class="stat"><small>إجمالي المبيعات للفترة</small><b>'+money(rev)+'</b></div></div><div class="toolbar"><button class="danger-btn" id="clearOrderHistory">🗑 مسح سجل الطلبات بالكامل</button></div><div class="orders">';
  html+=rows.length?rows.map(o=>{
