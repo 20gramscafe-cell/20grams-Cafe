@@ -127,3 +127,6 @@ body>.developer-footer .developer-contacts a span{direction:rtl;font-size:10px;c
 
 /* Product discount editor and crossed-out price */
 .discount-editor{display:grid;gap:9px;align-content:start}.discount-editor .secondary-btn{width:100%;cursor:pointer}.old-product-price{color:#a89c8d;font-size:11px;text-decoration:line-through}.form-grid .discount-editor label{display:grid;gap:6px}
+
+/* Center the add-product button and its plus sign consistently */
+#newProduct{display:inline-flex;align-items:center;justify-content:center;gap:8px;text-align:center;line-height:1.25;min-height:44px;padding:12px 20px;white-space:nowrap;direction:rtl}
