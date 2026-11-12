@@ -154,6 +154,14 @@ async function lock(action){
   if(action==="acquire"||action==="heartbeat")return !!r.data;
   return !!r.data;
 }
+function logoutAdmin(){
+  sessionStorage.removeItem("20grams_admin_password_ok");
+  if(orderMonitorTimer){clearInterval(orderMonitorTimer);orderMonitorTimer=null}
+  orderMonitorBusy=false;
+  knownOrderIds=null;
+  updateAdminTabBadge(0);
+  showPasswordLogin("تم تسجيل الخروج بنجاح. أدخل كلمة مرور الإدارة للدخول مرة أخرى.");
+}
 function showMessage(title,text){
   $("#loginView").classList.remove("hidden");$("#appView").classList.add("hidden");
   $("#loginTitle").textContent=title;$("#loginText").textContent=text;
@@ -297,6 +305,7 @@ async function settingsView(){
 document.addEventListener("DOMContentLoaded",()=>{
   document.querySelectorAll("[data-view]").forEach(b=>b.addEventListener("click",()=>{currentView=b.dataset.view;renderView()}));
   const notificationButton=$("#enableNotifications");if(notificationButton)notificationButton.addEventListener("click",()=>{if("Notification" in window&&Notification.permission==="granted"){localStorage.setItem(NOTIFICATIONS_ENABLED_KEY,String(!areOrderNotificationsEnabled()));updateNotificationButton();toast(areOrderNotificationsEnabled()?"تم تشغيل إشعارات الطلبات":"تم إيقاف إشعارات الطلبات");return}requestOrderNotifications()});
+  const logoutButton=$("#logoutAdmin");if(logoutButton)logoutButton.addEventListener("click",logoutAdmin);
   updateNotificationButton();
   boot();
 });
