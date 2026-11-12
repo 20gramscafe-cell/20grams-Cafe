@@ -11,17 +11,37 @@ function toast(m){const e=$("#toast");if(!e)return;e.textContent=m;e.classList.a
 function label(s){return({new:"جديد 🔔",confirmed:"تم التأكيد",preparing:"قيد التحضير",ready:"جاهز",served:"تم التقديم",completed:"مكتمل",cancelled:"ملغي"})[s]||s}
 function fmt(d){return d?new Date(d).toLocaleString("ar-EG",{dateStyle:"short",timeStyle:"short"}):"—"}
 function displayOrderNumber(value){const raw=String(value||"");const parts=raw.split("-");if(parts.length===3&&parts[0]==="20G")return {short:parts[2],reference:raw};return {short:raw||"—",reference:""};}
-function requestOrderNotifications(){
- if(!("Notification" in window)){toast("المتصفح لا يدعم إشعارات الطلبات");return}
- Notification.requestPermission().then(p=>{notificationPermission=p;updateNotificationButton();toast(p==="granted"?"تم تفعيل إشعارات الطلبات":p==="denied"?"الإشعارات مرفوضة من إعدادات المتصفح":"لم يتم تفعيل الإشعارات")}).catch(()=>toast("تعذر تفعيل الإشعارات"));
+let notificationRequestPending=false;
+async function requestOrderNotifications(){
+ const b=$("#enableNotifications");
+ if(!("Notification" in window)){toast("المتصفح لا يدعم إشعارات الطلبات");updateNotificationButton();return}
+ if(notificationRequestPending)return;
+ if(Notification.permission==="granted"){notificationPermission="granted";updateNotificationButton();toast("إشعارات الطلبات مفعّلة بالفعل");return}
+ if(Notification.permission==="denied"){notificationPermission="denied";updateNotificationButton();toast("الإشعارات محظورة؛ فعّلها من إعدادات الموقع في المتصفح");return}
+ notificationRequestPending=true;
+ if(b){b.disabled=true;b.textContent="⏳ جارٍ طلب إذن الإشعارات..."}
+ try{
+  const permission=await Notification.requestPermission();
+  notificationPermission=permission;
+  toast(permission==="granted"?"تم تفعيل إشعارات الطلبات":permission==="denied"?"الإشعارات محظورة؛ فعّلها من إعدادات الموقع في المتصفح":"لم يتم منح إذن الإشعارات");
+ }catch(error){
+  console.warn("Notification permission request failed",error);
+  toast("تعذر طلب إذن الإشعارات؛ راجع إعدادات الموقع في المتصفح");
+ }finally{
+  notificationRequestPending=false;
+  updateNotificationButton();
+ }
 }
 function updateNotificationButton(){
  const b=$("#enableNotifications");if(!b)return;
  if(!("Notification" in window)){b.textContent="الإشعارات غير مدعومة";b.disabled=true;return}
  notificationPermission=Notification.permission;
+ if(notificationRequestPending){b.textContent="⏳ جارٍ طلب إذن الإشعارات...";b.disabled=true;return}
+ b.disabled=false;
  b.textContent=notificationPermission==="granted"?"🔔 الإشعارات مفعّلة":notificationPermission==="denied"?"🔕 الإشعارات محظورة":"🔔 تفعيل إشعارات الطلبات";
  b.classList.toggle("notifications-on",notificationPermission==="granted");
 }
+
 function announceNewOrder(order){
  const number=order.order_number||"—";
  toast("🔔 وصل طلب جديد #"+number);
