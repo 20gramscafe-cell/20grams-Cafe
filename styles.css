@@ -211,3 +211,8 @@ body>.developer-footer .developer-contacts a:active{background:rgba(218,181,101,
 /* Center the customer add-to-cart plus sign precisely inside its button. */
 .product .add{display:inline-flex;align-items:center;justify-content:center;line-height:1;padding:0;vertical-align:middle;}
 .product .add::first-letter{line-height:1;}
+
+
+/* Optical centering for the plus glyph: keep the button fixed and center the symbol itself. */
+.product .add{font-size:0;display:inline-flex;align-items:center;justify-content:center;padding:0;line-height:1;}
+.product .add::before{content:'+';display:block;font-family:Arial,sans-serif;font-size:23px;font-weight:500;line-height:1;position:relative;top:-4px;}
