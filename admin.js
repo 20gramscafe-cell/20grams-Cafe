@@ -243,7 +243,7 @@ function productForm(cats,item){
     let imageUrl=item?.image_url||null;
     if(file){
       const base64=await new Promise((resolve,reject)=>{const rd=new FileReader();rd.onload=()=>resolve(rd.result);rd.onerror=reject;rd.readAsDataURL(file)});
-      const up=await gateway({op:"upload_product_image",base64,mimeType:file.type});
+      const up=await gateway({op:"upload_product_image",action:"upload_product_image",operation:"upload_product_image",base64,mimeType:file.type});
       if(up.error)return toast("تعذر رفع الصورة: "+up.error.message);
       imageUrl=up.data?.url||null;
     }
