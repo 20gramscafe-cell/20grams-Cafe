@@ -167,3 +167,39 @@ footer:not(.developer-footer) .brand-mark > span {
  .developer-footer .developer-contacts{gap:6px}
  .developer-footer .developer-contacts a{flex:1 1 125px;padding:7px 5px;font-size:11px}
 }
+
+
+/* Refined, compact designer credit for the customer page. */
+body>.developer-footer{
+  position:relative;isolation:isolate;
+  width:min(520px,calc(100% - 32px));
+  margin:30px auto 22px!important;padding:20px 18px!important;
+  display:flex;flex-direction:column;align-items:center;gap:7px;
+  box-sizing:border-box;text-align:center;
+  border:1px solid rgba(218,181,101,.72);border-radius:22px;
+  background:radial-gradient(ellipse at 50% 0,rgba(218,181,101,.2),transparent 68%),linear-gradient(145deg,#211910,#100e0c);
+  box-shadow:0 14px 38px rgba(0,0,0,.3),inset 0 1px rgba(255,236,190,.1);
+  color:#e5d7b7;line-height:1.6;overflow:hidden;
+}
+body>.developer-footer:before{content:"";position:absolute;top:0;left:18%;right:18%;height:2px;background:linear-gradient(90deg,transparent,#e2bd72,transparent)}
+body>.developer-footer .developer-kicker{color:#e5bf72;font-size:10px;font-weight:800;letter-spacing:.5px}
+body>.developer-footer strong{color:#fff2d4;font-size:clamp(15px,4vw,18px);font-weight:800;line-height:1.45}
+body>.developer-footer .developer-copy{font-size:11px;color:#b9a88e}
+body>.developer-footer .developer-contacts{display:flex;justify-content:center;flex-wrap:wrap;gap:9px;width:100%;margin-top:5px}
+body>.developer-footer .developer-contacts a{
+ display:inline-flex;align-items:center;justify-content:center;gap:7px;
+ flex:1 1 175px;max-width:220px;min-width:0;margin:0;padding:10px 12px;
+ border:1px solid rgba(218,181,101,.42);border-radius:13px;
+ background:rgba(218,181,101,.08);color:#f4d89e;
+ direction:ltr;font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;
+ text-decoration:none;white-space:nowrap;box-sizing:border-box
+}
+body>.developer-footer .developer-contacts a span{direction:rtl;font-size:10px;color:#c6a96f}
+body>.developer-footer .developer-contacts a:active{background:rgba(218,181,101,.2);transform:translateY(1px)}
+@media(max-width:480px){
+ body>.developer-footer{width:calc(100% - 24px);margin:22px auto 16px!important;padding:16px 11px!important;border-radius:18px;gap:6px}
+ body>.developer-footer .developer-kicker{font-size:9px}
+ body>.developer-footer .developer-copy{font-size:10px}
+ body>.developer-footer .developer-contacts{gap:7px}
+ body>.developer-footer .developer-contacts a{flex:1 1 130px;padding:9px 5px;font-size:11px}
+}
