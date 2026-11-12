@@ -11,6 +11,20 @@ function toast(m){const e=$("#toast");if(!e)return;e.textContent=m;e.classList.a
 function label(s){return({new:"جديد 🔔",confirmed:"تم التأكيد",preparing:"قيد التحضير",ready:"جاهز",served:"تم التقديم",completed:"مكتمل",cancelled:"ملغي"})[s]||s}
 function fmt(d){return d?new Date(d).toLocaleString("ar-EG",{dateStyle:"short",timeStyle:"short"}):"—"}
 function displayOrderNumber(value){const raw=String(value||"");const parts=raw.split("-");if(parts.length===3&&parts[0]==="20G")return {short:parts[2],reference:raw};return {short:raw||"—",reference:""};}
+const ADMIN_TAB_TITLE="20grams Cafe · الإدارة";
+function updateAdminTabBadge(count){
+ const n=Math.max(0,Number(count)||0);
+ document.title=(n>0?"("+n+") ":"")+ADMIN_TAB_TITLE;
+ let icon=document.querySelector('link[rel~="icon"][data-admin-tab-icon]');
+ if(!icon){icon=document.createElement("link");icon.rel="icon";icon.type="image/png";icon.dataset.adminTabIcon="true";document.head.appendChild(icon)}
+ const canvas=document.createElement("canvas");canvas.width=64;canvas.height=64;
+ const ctx=canvas.getContext("2d");
+ ctx.fillStyle="#20352d";ctx.beginPath();ctx.roundRect(4,4,56,56,14);ctx.fill();
+ ctx.fillStyle="#f7f2e8";ctx.font="bold 35px Arial";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("20",32,34);
+ if(n>0){ctx.fillStyle="#d62828";ctx.beginPath();ctx.arc(49,15,14,0,Math.PI*2);ctx.fill();ctx.fillStyle="#fff";ctx.font="bold 17px Arial";ctx.fillText(n>99?"99+":String(n),49,15)}
+ icon.href=canvas.toDataURL("image/png");
+}
+
 let notificationRequestPending=false;
 async function requestOrderNotifications(){
  const b=$("#enableNotifications");
@@ -49,8 +63,9 @@ function announceNewOrder(order){
  try{const C=window.AudioContext||window.webkitAudioContext;if(C){const ctx=new C();[1046,784,1046].forEach((hz,i)=>{const osc=ctx.createOscillator(),gain=ctx.createGain(),start=ctx.currentTime+i*.2;osc.type="sine";osc.frequency.value=hz;gain.gain.setValueAtTime(.001,start);gain.gain.exponentialRampToValueAtTime(.13,start+.025);gain.gain.exponentialRampToValueAtTime(.001,start+.17);osc.connect(gain);gain.connect(ctx.destination);osc.start(start);osc.stop(start+.18);osc.onended=()=>{if(i===2)ctx.close()}})}}catch(e){}
 }
 async function checkForNewOrders(initial=false){
- const r=await db.from("orders").select("id,order_number,created_at,status").order("created_at",{ascending:false}).limit(20);
+ const r=await db.from("orders").select("id,order_number,created_at,status").order("created_at",{ascending:false}).limit(1000);
  if(r.error||!Array.isArray(r.data))return;
+ updateAdminTabBadge(r.data.filter(o=>o.status==="new").length);
  const current=new Set(r.data.map(o=>String(o.id)));
  if(knownOrderIds===null||initial){knownOrderIds=current;return}
  const fresh=r.data.filter(o=>!knownOrderIds.has(String(o.id))).sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
