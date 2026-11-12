@@ -130,3 +130,5 @@ body>.developer-footer .developer-contacts a span{direction:rtl;font-size:10px;c
 
 /* Center the add-product button and its plus sign consistently */
 #newProduct{display:inline-flex;align-items:center;justify-content:center;gap:8px;text-align:center;line-height:1.25;min-height:44px;padding:12px 20px;white-space:nowrap;direction:rtl}
+
+.logout-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:36px;padding:8px 14px;border:1px solid rgba(220,105,85,.42);border-radius:10px;background:rgba(160,48,38,.14);color:#ffd5cc;font-family:inherit;font-size:12px;font-weight:800;cursor:pointer;transition:background .2s,border-color .2s}.logout-btn:hover{background:rgba(160,48,38,.28);border-color:rgba(220,105,85,.7)}.logout-btn:focus-visible{outline:2px solid var(--gold2);outline-offset:3px}
