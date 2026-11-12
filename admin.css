@@ -96,3 +96,30 @@ html,body{min-height:100%;}body{min-height:100dvh;display:flex;flex-direction:co
  .developer-footer .developer-contacts{gap:6px}
  .developer-footer .developer-contacts a{flex:1 1 125px;padding:7px 5px;font-size:11px}
 }
+
+
+/* Keep the full credit card clear of the fixed admin navigation. */
+body>.developer-footer{
+  position:relative;z-index:1;
+  width:min(560px,calc(100% - 300px));
+  margin:26px 0 18px calc(255px + (100% - 255px - min(560px,100% - 300px))/2)!important;
+  padding:18px 20px!important;
+  border:1px solid rgba(218,181,101,.72);
+  border-radius:20px;
+  background:radial-gradient(ellipse at 50% 0,rgba(218,181,101,.18),transparent 70%),linear-gradient(145deg,#211910,#100e0c);
+  box-shadow:0 12px 34px rgba(0,0,0,.34),inset 0 1px rgba(255,236,190,.08);
+}
+body>.developer-footer .developer-kicker{color:#e5bf72;font-size:10px;font-weight:800;letter-spacing:.6px}
+body>.developer-footer strong{color:#fff2d4;font-size:17px}
+body>.developer-footer .developer-copy{color:#b9a88e;font-size:11px}
+body>.developer-footer .developer-contacts{display:flex;flex-wrap:wrap;justify-content:center;gap:9px;width:100%;margin-top:7px}
+body>.developer-footer .developer-contacts a{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-width:0;margin:0;padding:9px 14px;border:1px solid rgba(218,181,101,.42);border-radius:12px;background:rgba(218,181,101,.08);color:#f4d89e;direction:ltr;font-variant-numeric:tabular-nums}
+body>.developer-footer .developer-contacts a span{direction:rtl;font-size:10px;color:#c6a96f}
+@media(max-width:850px) and (min-width:761px){
+ body>.developer-footer{width:min(560px,calc(100% - 100px));margin-right:0!important;margin-left:calc(72px + (100% - 72px - min(560px,100% - 100px))/2)!important}
+}
+@media(max-width:760px){
+ body>.developer-footer{width:calc(100% - 28px);margin:22px auto calc(94px + env(safe-area-inset-bottom))!important;padding:15px 12px!important}
+ body>.developer-footer .developer-contacts{gap:7px}
+ body>.developer-footer .developer-contacts a{flex:1 1 145px;padding:9px 6px;font-size:11px}
+}
