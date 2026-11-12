@@ -1,22 +1,23 @@
 (function(){
   function hasUnsavedChanges(){
+    // The in-memory cart is the source of truth while the customer is ordering.
     try{
-      const cart=JSON.parse(localStorage.getItem("20grams_cart")||"null");
-      if(Array.isArray(cart)&&cart.length)return true;
+      if(Array.isArray(window.state?.cart) && window.state.cart.length > 0)return true;
     }catch(e){}
+    // Keep compatibility with any cart items rendered in the page.
     const cartItems=document.querySelectorAll("#cartItems .cart-item, #cartItems [data-cart-item]");
     if(cartItems.length)return true;
-    const name=document.getElementById("customerName");
-    const phone=document.getElementById("customerPhone");
-    const note=document.getElementById("orderNote");
-    if(name&&name.value.trim())return true;
-    if(phone&&phone.value.trim())return true;
-    if(note&&note.value.trim())return true;
-    return false;
+    // Warn if the customer has typed checkout details or an order note.
+    const fields=["customerName","customerPhone","orderNote"];
+    return fields.some(function(id){
+      const el=document.getElementById(id);
+      return !!(el && typeof el.value==="string" && el.value.trim());
+    });
   }
   window.addEventListener("beforeunload",function(e){
     if(!hasUnsavedChanges())return;
     e.preventDefault();
+    // Modern browsers show their own standard confirmation message.
     e.returnValue="";
   });
 })();
